@@ -28,7 +28,7 @@ A VSCode/Windsurf extension that implements AI conversation "checkpoint" functio
   <div style="max-width: 120px; width: 100%; padding: 6px 6px 8px; border-radius: 10px; background: linear-gradient(135deg, #fff7f0, #f1f7ff); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #efe8ff;">
     <p style="margin: 0 0 4px; font-weight: 800; font-size: 10px; letter-spacing: 0.05px; color: #1f2937;">🎬 Bilibili · shiaho</p>
     <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="text-decoration: none; color: inherit;">
-      <img src="./images/b站首页.png" alt="Bilibili Profile - shiaho" style="width: 70%; max-width: 90px; margin: 2px auto 4px; display: block; border-radius: 8px; border: 1px solid #ececec;" />
+      <img src="./images/bilibili-home.png" alt="Bilibili Profile - shiaho" style="width: 70%; max-width: 90px; margin: 2px auto 4px; display: block; border-radius: 8px; border: 1px solid #ececec;" />
     </a>
     <p style="margin: 2px 0 2px; color: #374151; font-size: 9px;">295 Followers · 2 Posts · 1098 Likes</p>
     <p style="margin: 2px 0 0; font-size: 9px; color: #4b5563;">Author's Bilibili profile</p>
