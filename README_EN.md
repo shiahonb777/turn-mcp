@@ -25,15 +25,15 @@ A VSCode/Windsurf extension that implements AI conversation "checkpoint" functio
 ## Bilibili Profile
 
 <div align="center">
-  <div style="max-width: 170px; width: 100%; padding: 8px 8px 10px; border-radius: 12px; background: linear-gradient(135deg, #fff7f0, #f1f7ff); box-shadow: 0 6px 14px rgba(0,0,0,0.06); border: 1px solid #efe8ff;">
-    <p style="margin: 0 0 6px; font-weight: 800; font-size: 12px; letter-spacing: 0.05px; color: #1f2937;">🎬 Bilibili · shiaho</p>
+  <div style="max-width: 120px; width: 100%; padding: 6px 6px 8px; border-radius: 10px; background: linear-gradient(135deg, #fff7f0, #f1f7ff); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #efe8ff;">
+    <p style="margin: 0 0 4px; font-weight: 800; font-size: 10px; letter-spacing: 0.05px; color: #1f2937;">🎬 Bilibili · shiaho</p>
     <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="text-decoration: none; color: inherit;">
-      <img src="./images/b站首页.png" alt="Bilibili Profile - shiaho" style="width: 75%; max-width: 140px; margin: 2px auto 4px; display: block; border-radius: 10px; border: 1px solid #ececec;" />
+      <img src="./images/b站首页.png" alt="Bilibili Profile - shiaho" style="width: 70%; max-width: 90px; margin: 2px auto 4px; display: block; border-radius: 8px; border: 1px solid #ececec;" />
     </a>
-    <p style="margin: 4px 0 2px; color: #374151; font-size: 10px;">295 Followers · 2 Posts · 1098 Likes</p>
-    <p style="margin: 2px 0 0; font-size: 10px; color: #4b5563;">Author's Bilibili profile</p>
-    <p style="margin: 6px 0 0;">
-      <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="display: inline-block; padding: 5px 9px; border-radius: 999px; background: #ff6aa2; color: #fff; font-weight: 700; font-size: 10px; text-decoration: none; box-shadow: 0 5px 12px rgba(255,106,162,0.18);">
+    <p style="margin: 2px 0 2px; color: #374151; font-size: 9px;">295 Followers · 2 Posts · 1098 Likes</p>
+    <p style="margin: 2px 0 0; font-size: 9px; color: #4b5563;">Author's Bilibili profile</p>
+    <p style="margin: 5px 0 0;">
+      <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="display: inline-block; padding: 4px 7px; border-radius: 999px; background: #ff6aa2; color: #fff; font-weight: 700; font-size: 9px; text-decoration: none; box-shadow: 0 4px 10px rgba(255,106,162,0.16);">
         🔗 Visit Profile
       </a>
     </p>
