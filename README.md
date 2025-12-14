@@ -4,18 +4,36 @@
 
 一个 VSCode/Windsurf 插件，通过 MCP 协议实现 AI 对话“卡点”功能，单次请求内支持多轮交互，节省 API 请求次数。
 
+<div align="center" style="margin: 6px 0 18px;">
+  <p style="margin: 0 0 6px; font-size: 14px; color: #374151;">MCP 协议让 AI 在一次 API 内完成多轮交互</p>
+  <p style="margin: 0 0 10px;">
+    <a href="https://github.com/shiahonb777/turn-mcp" target="_blank" rel="noreferrer noopener" style="text-decoration: none; margin-right: 6px;">
+      <img alt="GitHub Stars" src="https://img.shields.io/github/stars/shiahonb777/turn-mcp?style=social" />
+    </a>
+    <a href="https://github.com/shiahonb777/turn-mcp/blob/main/LICENSE" target="_blank" rel="noreferrer noopener" style="text-decoration: none;">
+      <img alt="License" src="https://img.shields.io/badge/License-MIT-blue" />
+    </a>
+  </p>
+  <p style="margin: 0; font-size: 14px; color: #1f2937;">
+    链接：
+    <a href="https://github.com/shiahonb777/turn-mcp" target="_blank" rel="noreferrer noopener">GitHub</a> |
+    <a href="https://gitee.com/ashiahonb777/turn-mcp" target="_blank" rel="noreferrer noopener">Gitee（国内直连）</a> |
+    <a href="https://shiaho.sbs/" target="_blank" rel="noreferrer noopener">官网</a>
+  </p>
+</div>
+
 ## B站首页
 
 <div align="center">
-  <div style="max-width: 320px; width: 100%; padding: 12px 12px 14px; border-radius: 14px; background: linear-gradient(135deg, #fff7f0, #f1f7ff); box-shadow: 0 8px 20px rgba(0,0,0,0.07); border: 1px solid #efe8ff;">
-    <p style="margin: 0 0 8px; font-weight: 800; font-size: 16px; letter-spacing: 0.1px; color: #1f2937;">🎬 B站 · shiaho</p>
+  <div style="max-width: 170px; width: 100%; padding: 8px 8px 10px; border-radius: 12px; background: linear-gradient(135deg, #fff7f0, #f1f7ff); box-shadow: 0 6px 14px rgba(0,0,0,0.06); border: 1px solid #efe8ff;">
+    <p style="margin: 0 0 6px; font-weight: 800; font-size: 12px; letter-spacing: 0.05px; color: #1f2937;">🎬 B站 · shiaho</p>
     <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="text-decoration: none; color: inherit;">
-      <img src="./images/b站首页.png" alt="B站主页 - shiaho" style="width: 80%; max-width: 260px; margin: 2px auto 6px; display: block; border-radius: 12px; border: 1px solid #ececec;" />
+      <img src="./images/b站首页.png" alt="B站主页 - shiaho" style="width: 75%; max-width: 140px; margin: 2px auto 4px; display: block; border-radius: 10px; border: 1px solid #ececec;" />
     </a>
-    <p style="margin: 6px 0 3px; color: #374151; font-size: 12px;">295 粉丝 · 2 投稿 · 1098 获赞</p>
-    <p style="margin: 4px 0 0; font-size: 11px; color: #4b5563;">作者 B 站主页</p>
-    <p style="margin: 8px 0 0;">
-      <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="display: inline-block; padding: 6px 11px; border-radius: 999px; background: #ff6aa2; color: #fff; font-weight: 700; font-size: 11px; text-decoration: none; box-shadow: 0 6px 14px rgba(255,106,162,0.2);">
+    <p style="margin: 4px 0 2px; color: #374151; font-size: 10px;">295 粉丝 · 2 投稿 · 1098 获赞</p>
+    <p style="margin: 2px 0 0; font-size: 10px; color: #4b5563;">作者 B 站主页</p>
+    <p style="margin: 6px 0 0;">
+      <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="display: inline-block; padding: 5px 9px; border-radius: 999px; background: #ff6aa2; color: #fff; font-weight: 700; font-size: 10px; text-decoration: none; box-shadow: 0 5px 12px rgba(255,106,162,0.18);">
         🔗 访问主页
       </a>
     </p>
