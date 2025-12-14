@@ -196,24 +196,19 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
 
   private async handlePasteImage(base64Data: string, mimeType: string) {
     try {
-      // 从 base64 数据中提取实际的图片数据
-      const base64Content = base64Data.replace(/^data:image\/\w+;base64,/, '');
-      const buffer = Buffer.from(base64Content, 'base64');
-      
-      // 生成临时文件路径
       const ext = mimeType.split('/')[1] || 'png';
       const fileName = `paste_${Date.now()}.${ext}`;
       const tempDir = path.join(os.tmpdir(), 'turn-mcp-images');
       
-      // 确保目录存在
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
       }
       
       const filePath = path.join(tempDir, fileName);
+      const base64Content = base64Data.replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(base64Content, 'base64');
       fs.writeFileSync(filePath, buffer);
       
-      // 发送到 webview 添加附件
       this._view?.webview.postMessage({
         command: 'fileSelected',
         filePath,
@@ -772,6 +767,7 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
     <div class="link-row">
       <button class="btn-mini" onclick="openExternal('https://github.com/shiahonb777/turn-mcp')">GitHub</button>
       <button class="btn-mini" onclick="openExternal('https://gitee.com/ashiahonb777/turn-mcp')">Gitee（国内直连）</button>
+      <button class="btn-mini" onclick="openExternal('https://shiaho.sbs/')">个人站点</button>
     </div>
     <div style="margin-top: 8px;">检查更新 / 下载 VSIX：</div>
     <div class="link-row">
@@ -842,9 +838,11 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
       if (isWaiting) {
         dot.classList.add('waiting');
         text.textContent = '等待用户输入...';
-      } else {
+      } else if (isRunning) {
         dot.classList.add('running');
         text.textContent = queue.length > 0 ? '监控中 (队列: ' + queue.length + ')' : '监控中';
+      } else {
+        text.textContent = '未运行';
       }
 
       if (isWaiting && status.context) {
@@ -978,6 +976,11 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
       vscode.postMessage({ command: 'clearLogs' });
     }
 
+    function openExternal(url) {
+      if (!url) return;
+      vscode.postMessage({ command: 'openUrl', url });
+    }
+
     function showWaiting(context) {
       isWaiting = true;
       const indicator = document.getElementById('waitingIndicator');
@@ -986,16 +989,18 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
       document.getElementById('inputText').focus();
     }
 
-    let attachedFiles = [];
+    let attachedFiles = []; // { path: string }
 
     function submitInput() {
       const input = document.getElementById('inputText');
       let text = input.value.trim();
       
-      // 附加图片路径
+      // 附加图片文件路径，让 AI 用 read_file 工具查看
       if (attachedFiles.length > 0) {
-        const fileList = attachedFiles.map(f => f).join('\\n');
-        text = text + '\\n\\n[附加图片]:\\n' + fileList;
+        const imagePaths = attachedFiles.map((f, i) => {
+          return '[图片' + (i + 1) + ']: ' + f.path;
+        }).join('\\n');
+        text = text + '\\n\\n[附加图片 - 请使用 read_file 工具查看]:\\n' + imagePaths;
       }
       
       if (text) {
@@ -1003,6 +1008,7 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
         input.value = '';
         attachedFiles = [];
         updateAttachedFilesUI();
+        saveState();
       }
     }
 
@@ -1044,10 +1050,8 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
     document.addEventListener('click', () => closePlusMenu());
 
     function addAttachedFile(filePath) {
-      const container = document.getElementById('attachedFiles');
-      const item = document.createElement('div');
-      item.textContent = filePath;
-      container.appendChild(item);
+      attachedFiles.push({ path: filePath });
+      updateAttachedFilesUI();
     }
 
     function removeAttachedFile(index) {
@@ -1062,7 +1066,7 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
         return;
       }
       container.innerHTML = attachedFiles.map((file, index) => {
-        const fileName = file.split(/[\\\\/]/).pop();
+        const fileName = file.path.split(/[\\\\/]/).pop();
         return '<div class="attached-file">' +
           '<span>📷 ' + escapeHtml(fileName) + '</span>' +
           '<span class="remove" onclick="removeAttachedFile(' + index + ')">✕</span>' +
