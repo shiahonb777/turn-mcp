@@ -7,15 +7,15 @@ A VSCode/Windsurf extension that implements AI conversation "checkpoint" functio
 ## Bilibili Profile
 
 <div align="center">
-  <div style="max-width: 360px; width: 100%; padding: 14px 14px 16px; border-radius: 16px; background: linear-gradient(135deg, #fff7f0, #f1f7ff); box-shadow: 0 10px 24px rgba(0,0,0,0.08); border: 1px solid #efe8ff;">
-    <p style="margin: 0 0 10px; font-weight: 800; font-size: 18px; letter-spacing: 0.2px; color: #1f2937;">🎬 Bilibili · shiaho</p>
+  <div style="max-width: 320px; width: 100%; padding: 12px 12px 14px; border-radius: 14px; background: linear-gradient(135deg, #fff7f0, #f1f7ff); box-shadow: 0 8px 20px rgba(0,0,0,0.07); border: 1px solid #efe8ff;">
+    <p style="margin: 0 0 8px; font-weight: 800; font-size: 16px; letter-spacing: 0.1px; color: #1f2937;">🎬 Bilibili · shiaho</p>
     <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="text-decoration: none; color: inherit;">
-      <img src="./images/b站首页.png" alt="Bilibili Profile - shiaho" style="width: 85%; max-width: 320px; margin: 4px auto 6px; display: block; border-radius: 12px; border: 1px solid #ececec;" />
+      <img src="./images/b站首页.png" alt="Bilibili Profile - shiaho" style="width: 80%; max-width: 260px; margin: 2px auto 6px; display: block; border-radius: 12px; border: 1px solid #ececec;" />
     </a>
-    <p style="margin: 8px 0 4px; color: #374151; font-size: 13px;">295 Followers · 2 Posts · 1098 Likes</p>
-    <p style="margin: 6px 0 0; font-size: 12px; color: #4b5563;">Author's Bilibili profile</p>
+    <p style="margin: 6px 0 3px; color: #374151; font-size: 12px;">295 Followers · 2 Posts · 1098 Likes</p>
+    <p style="margin: 4px 0 0; font-size: 11px; color: #4b5563;">Author's Bilibili profile</p>
     <p style="margin: 8px 0 0;">
-      <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="display: inline-block; padding: 7px 12px; border-radius: 999px; background: #ff6aa2; color: #fff; font-weight: 700; font-size: 12px; text-decoration: none; box-shadow: 0 8px 18px rgba(255,106,162,0.2);">
+      <a href="https://b23.tv/4AS5vB4" target="_blank" rel="noreferrer noopener" style="display: inline-block; padding: 6px 11px; border-radius: 999px; background: #ff6aa2; color: #fff; font-weight: 700; font-size: 11px; text-decoration: none; box-shadow: 0 6px 14px rgba(255,106,162,0.2);">
         🔗 Visit Profile
       </a>
     </p>
