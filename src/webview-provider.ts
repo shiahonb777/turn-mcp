@@ -89,6 +89,11 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
         case 'pasteImage':
           this.handlePasteImage(message.data, message.type);
           break;
+        case 'openUrl':
+          if (message.url) {
+            vscode.env.openExternal(vscode.Uri.parse(message.url));
+          }
+          break;
       }
     });
 
@@ -417,9 +422,13 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
       word-break: break-all;
     }
     .config-section {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid var(--vscode-widget-border);
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--vscode-widget-border);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+      margin-bottom: 8px;
     }
     .config-hint {
       font-size: 11px;
@@ -654,6 +663,33 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
       justify-content: flex-end;
       margin-top: 8px;
     }
+    .footer {
+      margin-top: 16px;
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--vscode-widget-border);
+      font-size: 12px;
+      color: var(--vscode-foreground);
+      line-height: 1.6;
+    }
+    .footer .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .footer .btn-mini {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--vscode-button-border, transparent);
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .footer .btn-mini:hover {
+      background: var(--vscode-button-secondaryHoverBackground);
+    }
   </style>
 </head>
 <body>
@@ -728,6 +764,19 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
     <div class="btn-row">
       <button class="btn" onclick="autoConfig()">⚡ 一键配置</button>
       <button class="btn btn-secondary" onclick="clearConfig()">🗑️ 清除配置</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>开源地址：</div>
+    <div class="link-row">
+      <button class="btn-mini" onclick="openExternal('https://github.com/shiahonb777/turn-mcp')">GitHub</button>
+      <button class="btn-mini" onclick="openExternal('https://gitee.com/ashiahonb777/turn-mcp')">Gitee（国内直连）</button>
+    </div>
+    <div style="margin-top: 8px;">检查更新 / 下载 VSIX：</div>
+    <div class="link-row">
+      <button class="btn-mini" onclick="openExternal('https://github.com/shiahonb777/turn-mcp/releases/download/turn-mcp-1.0.0.vsix/turn-mcp-1.0.0.vsix')">GitHub 下载</button>
+      <button class="btn-mini" onclick="openExternal('https://gitee.com/ashiahonb777/turn-mcp/releases/download/turn-mcp-1.0.0.vsix/turn-mcp-1.0.0.vsix')">Gitee 直连</button>
     </div>
   </div>
 
@@ -995,10 +1044,10 @@ export class CheckpointViewProvider implements vscode.WebviewViewProvider {
     document.addEventListener('click', () => closePlusMenu());
 
     function addAttachedFile(filePath) {
-      if (!attachedFiles.includes(filePath)) {
-        attachedFiles.push(filePath);
-        updateAttachedFilesUI();
-      }
+      const container = document.getElementById('attachedFiles');
+      const item = document.createElement('div');
+      item.textContent = filePath;
+      container.appendChild(item);
     }
 
     function removeAttachedFile(index) {
