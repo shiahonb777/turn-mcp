@@ -1,0 +1,82 @@
+{
+  "name": "turn-mcp",
+  "displayName": "Turn MCP",
+  "description": "MCP插件 - 实现AI对话卡点，单次请求内支持多轮交互",
+  "version": "1.0.0",
+  "publisher": "turn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shiahonb777/turn-mcp.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "turn-mcp.showPanel",
+        "title": "Turn MCP: 打开控制面板"
+      },
+      {
+        "command": "turn-mcp.startServer",
+        "title": "Turn MCP: 启动服务器"
+      },
+      {
+        "command": "turn-mcp.stopServer",
+        "title": "Turn MCP: 停止服务器"
+      },
+      {
+        "command": "turn-mcp.autoConfig",
+        "title": "Turn MCP: 一键配置到Windsurf"
+      },
+      {
+        "command": "turn-mcp.clearConfig",
+        "title": "Turn MCP: 一键清除配置"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "turn-mcp",
+          "title": "Turn MCP",
+          "icon": "$(debug-pause)"
+        }
+      ]
+    },
+    "views": {
+      "turn-mcp": [
+        {
+          "type": "webview",
+          "id": "turn-mcp.mainView",
+          "name": "控制面板"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run bundle",
+    "compile": "tsc -p ./",
+    "bundle": "node esbuild.config.js",
+    "watch": "tsc -watch -p ./",
+    "build": "npm run bundle",
+    "package": "vsce package --allow-missing-repository"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "esbuild": "^0.27.1",
+    "typescript": "^5.3.0"
+  }
+}
