@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Turn MCP Web Console</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="not-ready">
+  <!-- Loading overlay — seamless transition -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-ring"></div>
+  </div>
+
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo">Turn MCP</h1>
+        <div class="sidebar-tools">
+          <span id="connStatus" class="conn-status connecting"></span>
+          <button id="notifToggleBtn" class="icon-btn" title="Notifications" aria-label="Notifications" type="button"></button>
+          <button id="soundToggleBtn" class="icon-btn" title="Sound" aria-label="Sound" type="button"></button>
+          <button id="langToggleBtn" class="icon-btn has-label" title="Language" aria-label="Language" type="button"></button>
+          <button id="settingsToggleBtn" class="icon-btn" title="Settings" aria-label="Settings" type="button">
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="3.2"></circle>
+              <path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 1 1-4 0v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 1 1 0-4h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a2 2 0 1 1 4 0v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6H20a2 2 0 1 1 0 4h-.2a1 1 0 0 0-.9.6Z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="sidebar-filter-bar" id="sidebarFilterBar">
+        <input id="sessionFilter" class="session-filter-input" type="search" data-i18n-ph="sessions.filter" autocomplete="off" />
+        <button id="cancelAllBtn" class="icon-btn has-label cancel-all-btn hidden" type="button">
+          <span data-i18n="sessions.cancelAll"></span>
+        </button>
+      </div>
+      <div class="session-list" id="sessionList"></div>
+    </aside>
+
+    <!-- Main panel -->
+    <main class="main-panel" id="mainPanel">
+      <!-- Welcome view -->
+      <div id="welcomeView" class="welcome-view">
+        <div class="welcome-inner">
+          <div class="welcome-icon" aria-hidden="true">
+            <svg class="welcome-icon-svg" viewBox="0 0 24 24">
+              <path d="M4 6.2A2.2 2.2 0 0 1 6.2 4h11.6A2.2 2.2 0 0 1 20 6.2v8.6a2.2 2.2 0 0 1-2.2 2.2H10l-4.8 3.6V17H6.2A2.2 2.2 0 0 1 4 14.8Z"></path>
+              <path d="M8 9h8M8 12h6"></path>
+            </svg>
+          </div>
+          <h2 data-i18n="welcome.title"></h2>
+          <p class="muted" data-i18n="welcome.subtitle"></p>
+          <div class="endpoint-box">
+            <span class="muted">MCP Endpoint:</span>
+            <code id="mcpEndpointUrl">...</code>
+          </div>
+          <details class="setup-guide" id="setupGuide">
+            <summary data-i18n="tutorial.summaryLabel"></summary>
+            <div id="setupGuideContent" class="setup-guide-content"></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Chat view -->
+      <div id="chatView" class="chat-view hidden">
+        <div class="chat-header">
+          <button id="backBtn" class="icon-btn back-btn" aria-label="Back" type="button">
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 18 9 12l6-6"></path>
+              <path d="M21 12H9"></path>
+            </svg>
+          </button>
+          <div class="chat-header-info">
+            <span class="chat-session-name hidden" id="chatSessionName"></span>
+            <span class="chat-session-id" id="chatSessionId"></span>
+            <span class="chat-session-meta" id="chatSessionMeta"></span>
+          </div>
+          <button id="editNameBtn" class="icon-btn" title="Name this session" aria-label="Name session" type="button" style="margin-left:auto;flex-shrink:0">
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area hidden" id="chatInputArea">
+          <div class="pending-context" id="pendingContext"></div>
+          <div class="quick-reply-bar" id="quickReplyBar"></div>
+          <div class="input-row">
+            <textarea id="replyInput" rows="2" data-i18n-ph="ph.replyInput"></textarea>
+            <button id="sendBtn" class="btn primary send-btn" data-i18n="btn.send"></button>
+          </div>
+          <div class="input-actions">
+            <span id="waitCountdown" class="countdown-label"></span>
+            <span id="multiWaitHint" class="multi-wait-hint hidden"></span>
+            <span class="input-actions-right">
+              <button id="extendBtn" class="btn-sm secondary" data-i18n="btn.extend"></button>
+              <button id="cancelBtn" class="btn-sm warning" data-i18n="btn.cancelWait"></button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings view -->
+      <div id="settingsView" class="settings-view hidden">
+        <div class="settings-header">
+          <h2 data-i18n="settings.title"></h2>
+          <button id="closeSettingsBtn" class="icon-btn" aria-label="Close settings" type="button">
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18 6-12 12"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="settings-body">
+          <section class="settings-section" id="authSection">
+            <h3 data-i18n="settings.auth"></h3>
+            <p id="authHint" class="muted small"></p>
+            <div class="settings-row">
+              <input id="apiKeyInput" class="text-input" type="password" data-i18n-ph="ph.apiKey" />
+              <button id="saveApiKeyBtn" class="btn primary" data-i18n="btn.save"></button>
+              <button id="clearApiKeyBtn" class="btn secondary" data-i18n="btn.clear"></button>
+            </div>
+          </section>
+          <section class="settings-section">
+            <h3 data-i18n="settings.timeout"></h3>
+            <div class="settings-row">
+              <label class="toggle-label" for="timeoutToggle">
+                <input id="timeoutToggle" type="checkbox" class="toggle-input" checked />
+                <span class="toggle-switch"></span>
+                <span data-i18n="settings.timeoutEnable"></span>
+              </label>
+            </div>
+            <p id="timeoutHint" class="muted small" style="margin-top:6px"></p>
+          </section>
+          <section class="settings-section">
+            <h3 data-i18n="settings.templates"></h3>
+            <div id="templateManager"></div>
+          </section>
+          <section class="settings-section">
+            <h3 data-i18n="settings.reinforcement"></h3>
+            <p id="reinforcementText" class="muted mono small"></p>
+          </section>
+          <section class="settings-section">
+            <h3 data-i18n="settings.webhook"></h3>
+            <div class="settings-row">
+              <input id="webhookUrlInput" class="text-input" type="url" data-i18n-ph="ph.webhookUrl" />
+              <button id="saveWebhookBtn" class="btn primary" data-i18n="btn.save"></button>
+              <button id="clearWebhookBtn" class="btn secondary" data-i18n="btn.clear"></button>
+            </div>
+          </section>
+          <section class="settings-section">
+            <h3 data-i18n="settings.guide"></h3>
+            <div class="endpoint-box" style="justify-content:flex-start">
+              <span class="muted">MCP Endpoint:</span>
+              <code id="settingsMcpUrl">...</code>
+            </div>
+            <div id="settingsGuideContent" class="setup-guide-content"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast notification container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Confirm modal -->
+  <div id="confirmModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <p id="confirmMsg" class="modal-msg"></p>
+      <div class="modal-actions">
+        <button id="confirmCancel" class="btn secondary" data-i18n="confirm.cancel"></button>
+        <button id="confirmOk" class="btn primary" data-i18n="confirm.ok"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/i18n.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

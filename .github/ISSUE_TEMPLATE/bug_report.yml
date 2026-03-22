@@ -1,0 +1,78 @@
+name: Bug Report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill in as much detail as possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this?
+      placeholder: |
+        1. Start server with `npx turn-mcp-web`
+        2. Connect AI client with `turn.wait` tool
+        3. Call `turn.wait` with ...
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server logs (if relevant)
+      description: Paste any relevant server output here.
+      render: shell
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      placeholder: "e.g. 20.11.0 (run: node --version)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: transport
+    attributes:
+      label: Transport
+      options:
+        - Streamable HTTP
+        - stdio (--stdio flag)
+        - Python client (turn-mcp-client)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: ai-client
+    attributes:
+      label: AI client / framework
+      placeholder: "e.g. Claude Desktop, Cursor, LangChain, custom"

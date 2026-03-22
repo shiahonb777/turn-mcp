@@ -1,0 +1,54 @@
+{
+  "name": "turn-mcp-web",
+  "version": "0.1.0",
+  "description": "MCP server + browser console providing turn.wait human-in-the-loop checkpoint for AI agents.",
+  "main": "dist/server.js",
+  "bin": {
+    "turn-mcp-web": "./dist/server.js",
+    "turn-mcp-web-stdio": "./dist/server-stdio.js"
+  },
+  "files": [
+    "dist",
+    "public",
+    "LICENSE"
+  ],
+  "scripts": {
+    "compile": "tsc -p ./",
+    "build": "npm run compile",
+    "prepublishOnly": "npm run build",
+    "test": "npm run test:unit && npm run test:runner && npm run test:ui",
+    "test:unit": "node ./tests/wait-store.test.js",
+    "test:runner": "node ./tests/ui-smoke-runner-cli.test.js",
+    "test:ui": "node ./tests/ui-smoke-runner.js",
+    "test:ui-smoke": "node ./tests/ui-events-entry-prune-hint.test.js",
+    "test:ui-filters": "node ./tests/ui-events-filter-interactions.test.js",
+    "test:ui-history": "node ./tests/ui-history-filter-interactions.test.js",
+    "test:ui-pagination": "node ./tests/ui-pagination-interactions.test.js",
+    "test:ui-auth": "node ./tests/ui-events-auth-visibility.test.js",
+    "start": "node dist/server.js",
+    "dev": "tsc -w -p ./"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "human-in-the-loop",
+    "ai-agent",
+    "turn-wait",
+    "checkpoint"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/turn-mcp-web-universal"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  }
+}

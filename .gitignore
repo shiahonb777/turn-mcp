@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output (compiled by tsc)
+dist/
+
+# Logs & runtime data
+logs/
+*.log
+*.jsonl
+
+# Runtime settings persisted by server
+.turn-mcp-settings.json
+
+# Test artifacts
+.tmp-regression/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+.venv/
+venv/

@@ -1,0 +1,32 @@
+# Source & dev files
+src/
+tests/
+tsconfig.json
+.gitignore
+.DS_Store
+logs/
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Docs (en readme kept; zh-CN excluded to save space)
+README.zh-CN.md
+CONTRIBUTING.md
+
+# GitHub
+.github/
+
+# Python client & examples (separate package)
+python-client/
+examples/
+
+# Runtime artifacts
+.tmp-regression/
+.turn-mcp-settings.json
+*.jsonl
+
+# Editor
+.vscode/
+.idea/
