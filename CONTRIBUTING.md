@@ -5,7 +5,7 @@ Thank you for your interest in contributing! This guide covers setup, testing, a
 ## Development Setup
 
 ```bash
-git clone https://github.com/anthropic/turn-mcp-web-universal
+git clone https://github.com/shiahonb777/turn-mcp
 cd turn-mcp-web-universal
 npm install
 npm run build

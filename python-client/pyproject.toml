@@ -23,8 +23,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/anthropic/turn-mcp-web-universal"
-Repository = "https://github.com/anthropic/turn-mcp-web-universal"
+Homepage = "https://github.com/shiahonb777/turn-mcp"
+Repository = "https://github.com/shiahonb777/turn-mcp"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -1,6 +1,6 @@
 # turn-mcp-client
 
-Python client for [turn-mcp-web](https://github.com/anthropic/turn-mcp-web-universal) — a self-hosted human-in-the-loop server for AI agents.
+Python client for [turn-mcp-web](https://github.com/shiahonb777/turn-mcp) — a self-hosted human-in-the-loop server for AI agents.
 
 ## Installation
 
