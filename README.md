@@ -257,6 +257,17 @@ examples/python/         LangChain, LangGraph integration examples
 
 ---
 
+## Agent Usage Guide
+
+Before deploying turn-mcp-web with an AI agent, share the skill document with the agent so it knows when and how to call `turn.wait`, what context to provide, and what rules to follow.
+
+- English: [`SKILL.md`](./SKILL.md)
+- 中文: [`SKILL.zh-CN.md`](./SKILL.zh-CN.md)
+
+Paste the document into the agent’s system prompt, or reference it with `@SKILL.md` in clients that support file context.
+
+---
+
 ## License
 
 MIT
