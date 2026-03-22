@@ -1,6 +1,6 @@
 # turn-mcp-web
 
-自托管的 MCP 服务器与浏览器控制台组合。一个 MCP 协议漏洞，可以放大计费 API 模型方案中资源的使用。AI Agent 调用
+一次模型 API 请求，实现无限次对话与交互。一个 MCP 协议漏洞，可以放大计费 API 模型方案中资源的使用。AI Agent 调用
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.17-brightgreen)](https://nodejs.org)

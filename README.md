@@ -1,6 +1,6 @@
 # turn-mcp-web
 
-A self-hosted MCP server paired with a browser-based control console. A vulnerability in the MCP protocol can amplify resource usage in API billing model schemes. AI agents call
+One model API request, unlimited conversations and interactions. A vulnerability in the MCP protocol can amplify resource usage in API billing model schemes. AI agents call `turn.wait` to pause execution
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.17-brightgreen)](https://nodejs.org)
