@@ -43,3 +43,7 @@ work → turn.wait → reply → work → turn.wait → reply → ...
 ```
 
 The human ends the session. You don't.
+
+---
+
+**After reading this document: check if `turn.wait` is available in your current environment. If it is, call it immediately to signal that you are ready and ask the human what they need.**
