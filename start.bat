@@ -68,9 +68,16 @@ echo.
 echo   Press  Ctrl+C  to stop the server.
 echo.
 
-:: ── 5. Open browser after 2 seconds ──────────────────────────
+:: ── 5. Kill any existing process on port 3737 ────────────────────────
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":3737 " ^| findstr "LISTENING"') do (
+    echo   Stopping old server on port 3737 (PID %%p)...
+    taskkill /PID %%p /F >nul 2>&1
+    timeout /t 1 /nobreak >nul
+)
+
+:: ── 6. Open browser after 2 seconds ──────────────────────────────────
 start "" /b cmd /c "timeout /t 2 /nobreak >nul && start http://127.0.0.1:3737/"
 
-:: ── 6. Run server ─────────────────────────────────────────────
+:: ── 7. Run server (foreground — Ctrl+C or closing the window stops node) ──────
 node dist\server.js
 pause

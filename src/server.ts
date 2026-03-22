@@ -978,16 +978,13 @@ async function shutdown(): Promise<void> {
   });
 }
 
-process.on('SIGINT', () => {
+const _onSignal = () => {
   shutdown().catch((error) => {
     logger.error('shutdown', error);
     process.exit(1);
   });
-});
+};
 
-process.on('SIGTERM', () => {
-  shutdown().catch((error) => {
-    logger.error('shutdown', error);
-    process.exit(1);
-  });
-});
+process.on('SIGINT',  _onSignal); // Ctrl+C
+process.on('SIGTERM', _onSignal); // kill / docker stop
+process.on('SIGHUP',  _onSignal); // terminal window closed
