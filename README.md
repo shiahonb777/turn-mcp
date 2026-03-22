@@ -7,6 +7,8 @@ One model API request, unlimited conversations and interactions. A vulnerability
 
 [中文文档](./README.zh-CN.md)
 
+**How it works:** Open the project folder and launch the server → configure the MCP endpoint in the browser console for your AI client → go to your AI tool and send it [`SKILL.md`](./SKILL.md) → the AI calls `turn.wait` and you reply in the browser — repeat for as many turns as you need.
+
 ---
 
 ## Quick Start
