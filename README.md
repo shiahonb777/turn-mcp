@@ -1,6 +1,6 @@
 # turn-mcp-web
 
-A self-hosted MCP server paired with a browser-based control console. AI agents call `turn.wait` to pause execution, ask the human operator a question, and resume once the operator replies. The MCP server, the browser console, and the REST API are all hosted by a single Node.js process with zero external dependencies.
+A self-hosted MCP server paired with a browser-based control console. Without human checkpoints, MCP agents can enter runaway loops that silently amplify API billing costs — `turn.wait` inserts mandatory human approval gates to prevent this. AI agents call `turn.wait` to pause execution, ask the human operator a question, and resume once the operator replies. The MCP server, the browser console, and the REST API are all hosted by a single Node.js process with zero external dependencies.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.17-brightgreen)](https://nodejs.org)
