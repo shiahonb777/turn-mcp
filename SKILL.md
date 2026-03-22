@@ -1,40 +1,38 @@
 # turn-mcp-web — Agent Usage Guide
 
-This document tells you, the AI agent, how to use the `turn.wait` MCP tool correctly.  
-Read it once, follow the rules throughout the entire task.
+This document tells you, the AI agent, how to use the `turn.wait` MCP tool.  
+Read it once. Follow the pattern throughout the entire session.
 
 ---
 
-## What turn.wait does
+## Core concept
 
-`turn.wait` pauses your execution and sends a message to the human operator's browser console.  
-You block until the human replies. When they reply, you receive their message and continue.
+A normal API call ends after one response. With `turn.wait`, a single API session becomes an unlimited multi-turn conversation.
 
-This is a **mandatory human-in-the-loop checkpoint**. Use it to get approval, clarification, or guidance before taking actions the human needs to review.
+Every time you call `turn.wait`, execution pauses. The human reads your message in the browser console and replies. You receive the reply and continue. This loop repeats for as long as the task requires — all within the same uninterrupted session.
+
+**This is the entire point.** You are not a one-shot assistant. You are a continuous collaborator that keeps the human informed and involved at every step.
 
 ---
 
-## When to call turn.wait
+## The pattern
 
-**Always call before:**
-- Deleting, overwriting, or moving files or data
-- Running database migrations or schema changes
-- Deploying to any environment (staging or production)
-- Making API calls with side effects (payments, emails, webhooks)
-- Taking any action that is irreversible or hard to undo
-- Committing and pushing code on behalf of the user
+```
+Start task
+  → do work
+  → call turn.wait (report progress, ask or confirm)
+  → receive reply
+  → do more work
+  → call turn.wait (report progress, ask or confirm)
+  → receive reply
+  → ...
+  → task complete
+  → call turn.wait (final report, ask what to do next)
+  → receive reply
+  → continue or end
+```
 
-**Call when:**
-- Multiple valid approaches exist and you need the human to choose
-- You encounter ambiguity that cannot be resolved from context alone
-- A subtask is complete and the human should review before you proceed to the next
-- You are about to start a long autonomous task — confirm scope first
-- The task is complete — report results and ask if anything else is needed
-
-**Do not call when:**
-- You are asking something you can infer from the conversation or context
-- The action is trivially reversible (e.g., reading a file, analyzing code)
-- You would be asking the same question you already asked in the same session
+**Never end the loop on your own.** The human ends the session by choosing not to reply or by saying they are done. You keep going.
 
 ---
 
@@ -46,124 +44,111 @@ Tool name: `turn.wait` (aliases: `turn_wait`, `turn`)
 
 | Parameter | Required | Description |
 |---|---|---|
-| `context` | **Yes** | What you have done so far and what you are about to do. Be specific and concise. |
-| `question` | No | The specific question you need answered. If omitted, the human sees only context. |
-| `options` | No | Array of up to 10 predefined reply choices shown as buttons. Use when there are 2–5 clear options. |
-| `agentName` | No | Your name or the name of this subtask. Helps the human identify who is asking. |
-| `timeoutSeconds` | No | How long to wait before timing out (10–3600). Default is set by the server. |
+| `context` | **Yes** | What you have done and what you are about to do. The human sees this first. |
+| `question` | No | The specific question or prompt for the human. |
+| `options` | No | Up to 10 predefined reply choices shown as buttons. Use when choices are clear. |
+| `agentName` | No | Your name or the name of the current subtask. |
+| `timeoutSeconds` | No | Seconds to wait before timing out (10–3600). |
 
 ### Writing good context
 
-The `context` field is what the human sees first. Write it so the human can make an informed decision without needing to ask follow-up questions.
+Write `context` as a progress update. Assume the human has not been watching — tell them what happened and what comes next.
 
-**Good context:**
+**Good:**
 ```
-Completed code analysis. Found 3 unused files:
-- src/legacy/old_auth.py — last commit 8 months ago, no imports found
-- tests/skipped_suite.py — all 12 tests marked @skip
-- scripts/migrate_v1.sh — migration already ran in prod on 2024-03-01
+Scanned all 214 files. Found 3 candidates for deletion:
+- src/legacy/old_auth.py — no imports anywhere, last commit 8 months ago
+- tests/skipped_suite.py — every test is @skip
+- scripts/migrate_v1.sh — migration ran in prod on 2024-03-01, no longer needed
 
-About to permanently delete these 3 files.
+Ready to delete these 3 files and free 240 KB.
 ```
 
-**Bad context:**
+**Bad:**
 ```
-Found some files to delete. Should I proceed?
+Found files. Delete?
 ```
 
 ### Using options
 
-Use `options` when there are a small number of clear choices:
+Use `options` when there are 2–5 clear choices and you want one-click replies:
 
 ```json
 {
-  "context": "...",
-  "question": "Which environment should I deploy to first?",
-  "options": ["staging", "production", "both", "cancel"]
+  "context": "Step 1 complete. Database backed up successfully.",
+  "question": "Proceed to schema migration?",
+  "options": ["Yes, migrate now", "Wait, let me check first", "Cancel"]
 }
 ```
-
-Do not use options for open-ended questions where the human needs to type a free answer.
 
 ---
 
 ## Handling the response
 
-When the human replies, you receive their message with a reinforcement suffix appended.  
-The suffix reminds you to call `turn.wait` again at the next checkpoint — follow it.
+Every reply from the human ends with a reinforcement suffix. This suffix reminds you to call `turn.wait` again. **Follow it every time.**
 
-- If the human says **proceed / yes / confirm** → continue with the action
-- If the human says **cancel / stop / no** → abort and explain what you did not do
-- If the human gives instructions or corrections → incorporate them and continue
-- If `[timeout]` is returned → the human did not respond; do not proceed with irreversible actions, report the timeout and wait for the next instruction
-- If `[canceled]` is returned → the human canceled; stop the current task
+- Human says proceed → do the work, then call turn.wait with a progress report
+- Human gives instructions → incorporate them, do the work, call turn.wait
+- Human says stop → acknowledge, summarize what was done, then call turn.wait to confirm they are satisfied
+- `[timeout]` returned → report the timeout, ask the human to reply when ready
+- `[canceled]` returned → the human manually canceled from the console; stop and summarize
 
 ---
 
 ## Rules
 
-1. **One checkpoint per major decision point.** Do not batch unrelated questions across one call; call once per decision point, not once for the entire task.
+1. **Keep calling.** After every action — however small — call turn.wait to report and continue. The reinforcement suffix is there for this reason. Follow it.
 
-2. **Call turn.wait again after you act.** After completing a step, call turn.wait to report progress and confirm next steps before continuing.
+2. **Report before and after.** Before an important action: tell the human what you are about to do. After: confirm what was done and what changed.
 
-3. **Provide enough context to decide.** The human cannot see your reasoning. Tell them: what you found, what you are about to do, and what the risk or impact is.
+3. **Never assume the session is over.** Only stop when the human explicitly ends it or when `[canceled]` is returned. Otherwise, keep the loop going.
 
-4. **Respect the reinforcement suffix.** After the human replies, the suffix at the end of their message reminds you to keep calling turn.wait. Do not ignore it.
+4. **Provide enough context every time.** The human sees each turn.wait message independently. Write context so they can understand the current state without reading previous messages.
 
-5. **Never end a session silently.** When the task is complete, call turn.wait one final time to report the outcome and ask if anything else is needed.
+5. **Use options to reduce friction.** When the next step has clear branches, give the human buttons to click instead of requiring them to type.
 
-6. **Do not loop on timeouts.** If turn.wait times out, do not retry automatically. Report the timeout and pause.
-
----
-
-## Anti-patterns
-
-| Pattern | Problem | Fix |
-|---|---|---|
-| Call turn.wait once at the start, never again | Human loses visibility after first checkpoint | Call at each major step |
-| Asking "Should I continue?" with no context | Human cannot make an informed decision | Describe exactly what you are about to do and why |
-| Calling turn.wait for every minor action | Interrupts the human too frequently | Group related actions; checkpoint before consequential steps only |
-| Proceeding after a timeout | Takes action without human approval | Halt and notify |
-| Ending the session without final report | Human doesn't know what was done | Always close with a summary call |
+6. **On timeout: wait, do not act.** If the human does not reply in time, report the timeout and pause. Do not take further action until they respond.
 
 ---
 
-## Minimal example
+## Example
 
 ```python
-# Python pseudocode showing correct checkpoint usage
+# A task with continuous turn.wait checkpoints
 
-result = analyze_codebase()
-
-# Checkpoint 1: before taking action
+# Step 1: report findings before acting
 reply = turn.wait(
-    context=f"Analysis complete. Found {len(result.deletable)} files safe to delete:\n{result.summary}",
-    question="Confirm deletion?",
-    options=["Yes, delete", "No, skip", "Show full list first"],
+    context="Analyzed the repo. Found 3 stale files totaling 240 KB.\n"
+            "- src/legacy/old_auth.py\n- tests/skipped_suite.py\n- scripts/migrate_v1.sh",
+    question="Delete all three?",
+    options=["Yes, delete all", "Show me each file first", "Skip, do something else"],
     agent_name="CleanupAgent"
 )
 
+# Step 2: act, then report result
 if "yes" in reply.lower():
-    deleted = delete_files(result.deletable)
-    
-    # Checkpoint 2: after action, before finishing
-    turn.wait(
-        context=f"Deleted {len(deleted)} files. Freed {deleted.size_mb:.1f} MB.\nAll changes are in the trash, restorable within 30 days.",
-        question="Task complete. Anything else?",
+    deleted = delete_files(stale_files)
+    reply = turn.wait(
+        context=f"Deleted {len(deleted)} files. Freed 240 KB.\n"
+                 "All files moved to Trash — recoverable for 30 days.",
+        question="What should I do next?",
         agent_name="CleanupAgent"
     )
+
+# Step 3: whatever the human says, keep going
+# ... this loop continues for the lifetime of the session
 ```
 
 ---
 
 ## Summary
 
-- `turn.wait` is how you communicate with the human during a task
-- Call it **before** irreversible actions, **after** completing steps, and **at the end** of the task
-- Write `context` as if the human has no other information — they probably don't
+- One API session = unlimited turns
+- Call `turn.wait` continuously — before acting, after acting, and at the end
+- Write clear context every time; the human sees each message independently
 - Follow the reinforcement suffix in every response
-- When in doubt, checkpoint
+- The human ends the session; you never end it yourself
 
 ---
 
-*This document is part of [turn-mcp-web](https://github.com/shiahonb777/turn-mcp).*
+*Part of [turn-mcp-web](https://github.com/shiahonb777/turn-mcp).*
