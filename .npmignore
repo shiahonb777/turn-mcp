@@ -30,6 +30,7 @@ examples/
 # Quick-start shell scripts (only needed when cloning the repo)
 start.sh
 start.bat
+start.command
 
 # Editor
 .vscode/

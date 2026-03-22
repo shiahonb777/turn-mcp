@@ -27,7 +27,9 @@
 
 ### Option A — Double-click to launch (no terminal needed)
 
-**macOS / Linux** — double-click `start.sh`, or:
+**macOS** — double-click `start.command` (opens Terminal automatically)
+
+**Linux** — double-click `start.sh` (mark executable first: `chmod +x start.sh`), or:
 ```bash
 bash start.sh
 ```
