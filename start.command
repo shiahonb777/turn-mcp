@@ -73,24 +73,50 @@ echo -e "  Press  ${BOLD}Ctrl+C${NC}  to stop the server."
 echo ""
 
 # ── 5. Kill any existing process on port 3737 ──────────────────────────
-OLD_PID=$(lsof -ti tcp:3737 2>/dev/null)
-if [ -n "$OLD_PID" ]; then
-  echo -e "  ${YELLOW}⚠${NC}  Port 3737 in use (PID $OLD_PID) — stopping old server..."
-  kill "$OLD_PID" 2>/dev/null
-  sleep 1
-  echo -e "  ${GREEN}✓${NC}  Old server stopped"
+# lsof may return multiple PIDs (listeners + connections); iterate each one
+while IFS= read -r OLD_PID; do
+  [ -z "$OLD_PID" ] && continue
+  echo -e "  ${YELLOW}⚠${NC}  Port 3737 in use (PID $OLD_PID) — stopping..."
+  kill -9 "$OLD_PID" 2>/dev/null
+done < <(lsof -ti tcp:3737 2>/dev/null)
+# Wait until the port is actually free (up to 3 s)
+for _i in 1 2 3 4 5 6; do
+  lsof -ti tcp:3737 &>/dev/null || break
+  sleep 0.5
+done
+if lsof -ti tcp:3737 &>/dev/null; then
+  echo -e "  ${RED}✗ Port 3737 still in use. Close the existing server first.${NC}"
+  read -rp "  Press Enter to exit..."
+  exit 1
 fi
 
 # ── 6. Open browser after server starts ─────────────────────────────
 (
   sleep 1.8
   if command -v open &>/dev/null; then
-    open "http://127.0.0.1:3737/"        # macOS
+    open "http://127.0.0.1:3737/"
   elif command -v xdg-open &>/dev/null; then
-    xdg-open "http://127.0.0.1:3737/" &  # Linux
+    xdg-open "http://127.0.0.1:3737/" &
   fi
 ) &
 
-# ── 7. Run server (exec replaces this shell process with node) ──────────────
-# Closing the terminal window sends SIGHUP directly to node, which shuts down gracefully.
-exec node dist/server.js
+# ── 7. Run server ────────────────────────────────────────────────────────
+# Run node in background, forward all terminal signals to it.
+# This keeps the shell alive so we can show error messages if node crashes.
+node dist/server.js &
+NODE_PID=$!
+
+# Forward Ctrl+C, kill, and terminal-window-close to node
+trap 'kill -SIGTERM $NODE_PID 2>/dev/null' SIGINT SIGTERM SIGHUP
+
+# Wait for node to exit and capture its exit code
+wait $NODE_PID
+EXIT_CODE=$?
+
+# If node exited with an error, keep the terminal open so the user can read it
+if [ $EXIT_CODE -ne 0 ]; then
+  echo ""
+  echo -e "  ${RED}✗ Server exited with code $EXIT_CODE${NC}"
+  echo ""
+  read -rp "  Press Enter to close..."
+fi
