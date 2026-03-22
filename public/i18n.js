@@ -3,6 +3,7 @@
   'use strict';
 
   var LANG_KEY = 'turn-mcp-web.lang';
+  var LANG_SELECTED_KEY = 'turn-mcp-web.langSelected'; // set only when user explicitly chooses
   var supported = ['en', 'zh'];
 
   var en = {
@@ -45,6 +46,7 @@
     'btn.send': 'Send',
     'btn.copy': 'Copy',
     'btn.copied': 'Copied!',
+    'copy.failed': 'Copy failed — text selected instead.',
     'btn.extend': 'Extend 5min',
     'btn.cancelWait': 'Cancel',
     'btn.save': 'Save',
@@ -79,6 +81,42 @@
     'ph.newTemplate': 'New template content',
     'ph.webhookUrl': 'https://...',
 
+    // Auto-configure
+    'settings.autoConfig': 'One-Click Setup',
+    'ac.modeTargeted': 'Known Clients',
+    'ac.modeGeneric': 'Third-Party',
+    'ac.modeSystem': 'System-Wide',
+    'ac.targetedDesc': 'Automatically write turn-mcp-web into the config file of each installed client.',
+    'ac.genericDesc': 'For any client that reads the standard mcpServers format. Writes to ~/.config/mcp/servers.json — a universal discovery file.',
+    'ac.systemDesc': 'Adds TURN_MCP_SERVER to your shell profile and writes to ~/.config/mcp/servers.json so any new MCP client can auto-discover this server.',
+    'ac.systemShellDesc': 'Adds TURN_MCP_SERVER env variable (inherited by all child processes)',
+    'ac.systemMcpDesc': 'Universal MCP discovery file read by many clients',
+    'ac.configure': 'Configure',
+    'ac.configuring': 'Configuring…',
+    'ac.configAll': 'Configure All',
+    'ac.refresh': 'Refresh',
+    'ac.writeGeneric': 'Write to ~/.config/mcp/servers.json',
+    'ac.configSystem': 'Configure System',
+    'ac.statusOk': 'Configured',
+    'ac.statusNo': 'Not configured',
+    'ac.statusNa': 'Not installed',
+    'ac.successTitle': 'Configuration written',
+    'ac.allAlready': 'All clients already configured.',
+    'ac.writtenTo': 'Written to {path}',
+    'ac.errorMsg': 'Error: {msg}',
+    'ac.clearAll': 'Clear All',
+    'ac.clearGeneric': 'Remove from ~/.config/mcp/servers.json',
+    'ac.clearSystem': 'Clear System Config',
+    'ac.clear': 'Clear',
+    'ac.clearing': 'Clearing…',
+    'ac.clearTitle': 'Configuration removed',
+    'ac.noneConfigured': 'No clients are currently configured.',
+    'ac.action_created': 'created',
+    'ac.action_updated': 'updated',
+    'ac.action_already-configured': 'already set',
+    'ac.action_not-configured': 'not found',
+    'ac.action_not-found': 'not installed',
+
     // Error
     'error.title': 'Error',
 
@@ -92,6 +130,15 @@
     // Multi-wait
     'sessions.waitingMulti': 'pending waits',
     'chat.multiWaitHint': '{n} waits pending — replying to the oldest first',
+    'sessions.groupActive': 'Active',
+    'sessions.groupHistory': 'History',
+    'sessions.resBadgeTimeout': 'timed out',
+    'sessions.resBadgeCanceled': 'canceled',
+    'history.readOnlyTitle': 'Historical session — view only',
+    'history.readOnlyDesc': 'This session has ended.',
+
+    // Options offered by agent
+    'chat.optionsOffered': 'Options:',
 
     // Templates
     'tpl.continue': 'Continue',
@@ -115,15 +162,22 @@
 
     // Tutorial
     'tutorial.summaryLabel': 'Setup Guide',
-    'tutorial.heading': 'Streamable HTTP Integration',
-    'tutorial.intro': 'Add the following to your IDE\'s MCP config:',
+    'tutorial.heading': 'Streamable HTTP (IDE)',
+    'tutorial.headingCli': 'Terminal & Other Clients',
+    'tutorial.intro': 'Add the following to your MCP config:',
     'tutorial.editWindsurf': 'Edit <code>~/.codeium/windsurf/mcp_config.json</code>:',
     'tutorial.editCursor': 'Edit <code>~/.cursor/mcp.json</code>:',
-    'tutorial.editClaude': 'Claude Desktop config:',
+    'tutorial.editClaude': 'Edit <code>claude_desktop_config.json</code>:',
+    'tutorial.editVSCode': 'Edit <code>.vscode/mcp.json</code> (requires GitHub Copilot):',
+    'tutorial.editAntiGravity': 'Manage MCP Servers panel → paste JSON:',
+    'tutorial.editClaudeCode': 'Run in terminal (one-time setup):',
+    'tutorial.editOpenCode': 'Edit <code>~/.config/opencode/opencode.json</code>:',
+    'tutorial.editWarp': 'Settings → AI → MCP Servers → + Add → paste JSON:',
+    'tutorial.editOpenClaw': 'Edit <code>openclaw.json</code>:',
     'tutorial.authHeading': 'With API Key',
     'tutorial.authIntro': 'Add headers to the config:',
     'tutorial.notesHeading': 'Notes',
-    'tutorial.note1': 'Restart your IDE after modifying the config.',
+    'tutorial.note1': 'Restart your client after modifying the config.',
     'tutorial.note2': 'Make sure the Turn MCP server is running.',
     'tutorial.note3': 'The server default port is 3737.',
   };
@@ -163,6 +217,7 @@
     'btn.send': '发送',
     'btn.copy': '复制',
     'btn.copied': '已复制！',
+    'copy.failed': '复制失败 — 已自动选中文本',
     'btn.extend': '延长 5 分钟',
     'btn.cancelWait': '取消',
     'btn.save': '保存',
@@ -194,6 +249,42 @@
     'ph.newTemplate': '新模板内容',
     'ph.webhookUrl': 'https://...',
 
+    // Auto-configure
+    'settings.autoConfig': '一键接入',
+    'ac.modeTargeted': '指定客户端',
+    'ac.modeGeneric': '第三方客户端',
+    'ac.modeSystem': '系统环境',
+    'ac.targetedDesc': '自动将 turn-mcp-web 写入已安装客户端的配置文件。',
+    'ac.genericDesc': '适用于任何支持 mcpServers 格式的客户端。写入 ~/.config/mcp/servers.json — 一个通用发现文件。',
+    'ac.systemDesc': '将 TURN_MCP_SERVER 写入 Shell 配置文件，并写入 ~/.config/mcp/servers.json，让任何新 MCP 客户端都能自动发现服务器。',
+    'ac.systemShellDesc': '添加 TURN_MCP_SERVER 环境变量（所有子进程继承）',
+    'ac.systemMcpDesc': '多数客户端会扫描的通用 MCP 发现文件',
+    'ac.configure': '配置',
+    'ac.configuring': '配置中…',
+    'ac.configAll': '一键配置全部',
+    'ac.refresh': '刷新状态',
+    'ac.writeGeneric': '写入 ~/.config/mcp/servers.json',
+    'ac.configSystem': '配置系统环境',
+    'ac.statusOk': '已配置',
+    'ac.statusNo': '未配置',
+    'ac.statusNa': '未安装',
+    'ac.successTitle': '配置已写入',
+    'ac.allAlready': '所有客户端已配置。',
+    'ac.writtenTo': '已写入 {path}',
+    'ac.errorMsg': '错误：{msg}',
+    'ac.clearAll': '一键清理全部',
+    'ac.clearGeneric': '从 ~/.config/mcp/servers.json 清除',
+    'ac.clearSystem': '清除系统配置',
+    'ac.clear': '清除',
+    'ac.clearing': '清除中…',
+    'ac.clearTitle': '配置已清除',
+    'ac.noneConfigured': '没有客户端已配置。',
+    'ac.action_created': '已创建',
+    'ac.action_updated': '已更新',
+    'ac.action_already-configured': '无需操作',
+    'ac.action_not-configured': '未写入',
+    'ac.action_not-found': '未安装',
+
     'error.title': '操作失败',
 
     'confirm.ok': '确认',
@@ -203,6 +294,14 @@
 
     'sessions.waitingMulti': '个等待任务',
     'chat.multiWaitHint': '共 {n} 个等待任务，按时间顺序优先回复最早的',
+    'sessions.groupActive': '当前活跃',
+    'sessions.groupHistory': '历史会话',
+    'sessions.resBadgeTimeout': '超时',
+    'sessions.resBadgeCanceled': '已取消',
+    'history.readOnlyTitle': '历史会话 — 仅预览',
+    'history.readOnlyDesc': '此会话已结束。',
+
+    'chat.optionsOffered': '预设选项：',
 
     'tpl.continue': '继续',
     'tpl.proceed': '按你的建议执行',
@@ -220,15 +319,22 @@
     'chat.loadFullContext': '加载完整上下文',
 
     'tutorial.summaryLabel': '接入指南',
-    'tutorial.heading': 'Streamable HTTP 接入',
-    'tutorial.intro': '在 IDE 的 MCP 配置中添加：',
+    'tutorial.heading': 'Streamable HTTP（IDE）',
+    'tutorial.headingCli': '终端与其他客户端',
+    'tutorial.intro': '将以下配置添加到对应客户端：',
     'tutorial.editWindsurf': '编辑 <code>~/.codeium/windsurf/mcp_config.json</code>：',
     'tutorial.editCursor': '编辑 <code>~/.cursor/mcp.json</code>：',
-    'tutorial.editClaude': 'Claude Desktop 配置：',
+    'tutorial.editClaude': '编辑 <code>claude_desktop_config.json</code>：',
+    'tutorial.editVSCode': '编辑 <code>.vscode/mcp.json</code>（需 GitHub Copilot）：',
+    'tutorial.editAntiGravity': 'Manage MCP Servers 面板 → 粘贴 JSON：',
+    'tutorial.editClaudeCode': '在终端执行（一次性配置）：',
+    'tutorial.editOpenCode': '编辑 <code>~/.config/opencode/opencode.json</code>：',
+    'tutorial.editWarp': '设置 → AI → MCP Servers → + Add → 粘贴 JSON：',
+    'tutorial.editOpenClaw': '编辑 <code>openclaw.json</code>：',
     'tutorial.authHeading': '带 API Key',
     'tutorial.authIntro': '在配置中添加 headers：',
     'tutorial.notesHeading': '注意事项',
-    'tutorial.note1': '修改配置后需重启 IDE。',
+    'tutorial.note1': '修改配置后需重启对应客户端。',
     'tutorial.note2': '确保 Turn MCP 服务器已启动。',
     'tutorial.note3': '默认端口为 3737。',
   };
@@ -237,12 +343,19 @@
 
   function detectLang() {
     try {
-      var saved = localStorage.getItem(LANG_KEY);
-      if (saved && supported.indexOf(saved) >= 0) return saved;
+      // Only honour a saved preference if the user explicitly chose it
+      var selected = localStorage.getItem(LANG_SELECTED_KEY);
+      if (selected) {
+        var saved = localStorage.getItem(LANG_KEY);
+        if (saved && supported.indexOf(saved) >= 0) return saved;
+      }
     } catch (e) {}
-    var nav = (typeof navigator !== 'undefined' && navigator.language || 'en').toLowerCase();
-    if (nav.startsWith('zh')) return 'zh';
+    // No explicit selection yet — return 'en' as safe default for the picker UI
     return 'en';
+  }
+
+  function hasExplicitSelection() {
+    try { return Boolean(localStorage.getItem(LANG_SELECTED_KEY)); } catch (e) { return false; }
   }
 
   var currentLang = detectLang();
@@ -261,12 +374,15 @@
   function setLang(lang) {
     if (supported.indexOf(lang) < 0) return;
     currentLang = lang;
-    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+    try {
+      localStorage.setItem(LANG_KEY, lang);
+      localStorage.setItem(LANG_SELECTED_KEY, '1'); // mark as user-chosen — survives restarts
+    } catch (e) {}
   }
 
   function getLang() { return currentLang; }
 
-  var api = { t: translate, setLang: setLang, getLang: getLang };
+  var api = { t: translate, setLang: setLang, getLang: getLang, hasExplicitSelection: hasExplicitSelection };
 
   if (typeof root !== 'undefined') root.i18n = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

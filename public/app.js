@@ -278,11 +278,27 @@ function copyCode(btn) {
   if (!wrap) return;
   var codeEl = wrap.querySelector('code') || wrap.querySelector('pre');
   var text = codeEl ? (codeEl.textContent || '') : '';
+  var originalHTML = btn.innerHTML;
   navigator.clipboard.writeText(text).then(function () {
     btn.setAttribute('data-copied', '1');
+    btn.innerHTML = svgIcon('<polyline points="20 6 9 17 4 12"/>', 13) + ' ' + esc(t('btn.copied'));
     btn.title = t('btn.copied');
-    setTimeout(function () { btn.removeAttribute('data-copied'); btn.title = t('btn.copy'); }, 2000);
-  }).catch(function () {});
+    setTimeout(function () {
+      btn.removeAttribute('data-copied');
+      btn.innerHTML = originalHTML;
+      btn.title = t('btn.copy');
+    }, 2000);
+  }).catch(function () {
+    // Fallback: select text inside the code block
+    if (codeEl) {
+      var sel = window.getSelection();
+      var range = document.createRange();
+      range.selectNodeContents(codeEl);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    showErrorToast(t('copy.failed'));
+  });
 }
 
 function codeWrap(preContent) {
@@ -615,6 +631,10 @@ function updateLangButton() {
 updateNotifButtons();
 updateLangButton();
 
+// Stored for lang-switch re-renders
+var _mcpUrl = '';
+var _hasAuth = false;
+
 // ===== Connection status =====
 function updateConnStatus(state) {
   var el = document.getElementById('connStatus');
@@ -648,6 +668,8 @@ async function loadPublicConfig() {
   updateTimeoutHint();
 
   var mcpUrl = window.location.origin + (data.mcpPath || '/mcp');
+  _mcpUrl = mcpUrl;
+  _hasAuth = Boolean(data.requireApiKey);
   if ($mcpEndpointUrl) $mcpEndpointUrl.textContent = mcpUrl;
   renderSetupGuide(mcpUrl, requireApiKey);
 }
@@ -722,57 +744,101 @@ async function loadSessionChat(sessionId) {
 }
 
 // ===== Rendering: Session List =====
+function buildSessionItemHtml(s) {
+  var isActive = s.sessionId === selectedSessionId;
+  var dotClass = s.status === 'pending' ? 'pending' : s.status === 'timeout' ? 'timeout' : s.status === 'canceled' ? 'canceled' : 'completed';
+  var firstPending = s.pendingWaits && s.pendingWaits[0];
+  var pendingCount = (s.pendingWaits || []).length;
+  var statusText = s.status === 'pending'
+    ? (pendingCount > 1 ? pendingCount + ' ' + t('sessions.waitingMulti') : t('sessions.waiting'))
+    : s.interactionCount + ' ' + t('sessions.interactions');
+  var customName = getSessionName(s.sessionId);
+  var displayId = customName ? esc(customName) : esc(shortId(s.sessionId));
+  var agentBadge = (firstPending && firstPending.agentName) ? ' <span class="agent-name-badge">' + esc(firstPending.agentName) + '</span>' : '';
+  var multiPendingBadge = pendingCount > 1 ? ' <span class="multi-pending-badge">' + pendingCount + '</span>' : '';
+  // Resolution badge for completed sessions
+  var resBadge = '';
+  if (s.status === 'timeout')   resBadge = ' <span class="session-res-badge res-timeout">' + esc(t('sessions.resBadgeTimeout')) + '</span>';
+  if (s.status === 'canceled')  resBadge = ' <span class="session-res-badge res-canceled">' + esc(t('sessions.resBadgeCanceled')) + '</span>';
+  return '<div class="session-item' + (isActive ? ' active' : '') + '" data-session-id="' + esc(s.sessionId) + '">' +
+    '<div class="session-item-header">' +
+      '<span class="session-dot ' + dotClass + '"></span>' +
+      '<span class="session-id">' + displayId + '</span>' +
+      agentBadge + multiPendingBadge + resBadge +
+    '</div>' +
+    '<div class="session-meta">' + esc(statusText) + ' · ' + esc(relativeTime(s.lastActivity)) + '</div>' +
+  '</div>';
+}
+
 function renderSessionList() {
   var allSessions = sessionsArray();
 
-  // Show/hide cancel-all button based on pending sessions
-  var hasPending = allSessions.some(function (s) { return s.status === 'pending'; });
+  var filterVal = ($sessionFilter ? $sessionFilter.value.trim().toLowerCase() : '');
+  if (filterVal) {
+    allSessions = allSessions.filter(function (s) {
+      var name = getSessionName(s.sessionId).toLowerCase();
+      return s.sessionId.toLowerCase().includes(filterVal) || name.includes(filterVal);
+    });
+  }
+
+  // Split into active vs historical
+  var active = allSessions.filter(function (s) { return s.status === 'pending'; });
+  var historical = allSessions.filter(function (s) { return s.status !== 'pending'; });
+
+  // Cancel All button
   var $cancelAll = document.getElementById('cancelAllBtn');
   if ($cancelAll) {
-    if (hasPending) $cancelAll.classList.remove('hidden');
+    if (active.length > 0) $cancelAll.classList.remove('hidden');
     else $cancelAll.classList.add('hidden');
   }
 
-  // Filter by search input
-  var filterVal = ($sessionFilter ? $sessionFilter.value.trim().toLowerCase() : '');
-  var arr = filterVal
-    ? allSessions.filter(function (s) { return s.sessionId.toLowerCase().includes(filterVal); })
-    : allSessions;
-
-  if (arr.length === 0) {
+  if (active.length === 0 && historical.length === 0) {
     $sessionList.innerHTML = '<div class="session-list-empty">' +
       esc(filterVal ? t('sessions.noMatch') : t('sessions.empty')) + '</div>';
     return;
   }
 
-  var total = arr.length;
-  if (arr.length > SESSION_LIST_MAX) arr = arr.slice(0, SESSION_LIST_MAX);
+  var html = '';
 
-  $sessionList.innerHTML = arr.map(function (s) {
-    var isActive = s.sessionId === selectedSessionId;
-  var dotClass = s.status === 'pending' ? 'pending' : s.status === 'timeout' ? 'timeout' : s.status === 'canceled' ? 'canceled' : 'completed';
-    var firstPending = s.pendingWaits && s.pendingWaits[0];
-    var pendingCount = (s.pendingWaits || []).length;
-    var statusText = s.status === 'pending'
-      ? (pendingCount > 1 ? pendingCount + ' ' + t('sessions.waitingMulti') : t('sessions.waiting'))
-      : s.interactionCount + ' ' + t('sessions.interactions');
-    var customName = getSessionName(s.sessionId);
-    var displayId = customName ? esc(customName) : esc(shortId(s.sessionId));
-    var agentBadge = (firstPending && firstPending.agentName) ? ' <span class="agent-name-badge">' + esc(firstPending.agentName) + '</span>' : '';
-    var multiPendingBadge = pendingCount > 1 ? ' <span class="multi-pending-badge">' + pendingCount + '</span>' : '';
-    return '<div class="session-item' + (isActive ? ' active' : '') + '" data-session-id="' + esc(s.sessionId) + '">' +
-      '<div class="session-item-header">' +
-        '<span class="session-dot ' + dotClass + '"></span>' +
-        '<span class="session-id">' + displayId + '</span>' +
-        agentBadge + multiPendingBadge +
-      '</div>' +
-      '<div class="session-meta">' + esc(statusText) + ' · ' + esc(relativeTime(s.lastActivity)) + '</div>' +
+  // ── Active section ────────────────────────────────────────
+  if (active.length > 0) {
+    html += '<div class="session-group-hdr">' +
+      '<span class="session-group-dot pending"></span>' +
+      '<span>' + esc(t('sessions.groupActive')) + '</span>' +
+      '<span class="session-group-count">' + active.length + '</span>' +
     '</div>';
-  }).join('');
-
-  if (total > SESSION_LIST_MAX) {
-    $sessionList.innerHTML += '<div class="session-list-empty" style="font-size:11px">' + esc(t('sessions.more', { shown: SESSION_LIST_MAX, total: total })) + '</div>';
+    var activeSlice = active.length > SESSION_LIST_MAX ? active.slice(0, SESSION_LIST_MAX) : active;
+    html += activeSlice.map(buildSessionItemHtml).join('');
+    if (active.length > SESSION_LIST_MAX) {
+      html += '<div class="session-list-empty" style="font-size:11px">' + esc(t('sessions.more', { shown: SESSION_LIST_MAX, total: active.length })) + '</div>';
+    }
   }
+
+  // ── History section ───────────────────────────────────────
+  if (historical.length > 0) {
+    html += '<div class="session-group-hdr session-group-hdr-history">' +
+      '<span>' + esc(t('sessions.groupHistory')) + '</span>' +
+      '<span class="session-group-count">' + historical.length + '</span>' +
+    '</div>';
+    var histSlice = historical.length > SESSION_LIST_MAX ? historical.slice(0, SESSION_LIST_MAX) : historical;
+    html += histSlice.map(buildSessionItemHtml).join('');
+    if (historical.length > SESSION_LIST_MAX) {
+      html += '<div class="session-list-empty" style="font-size:11px">' + esc(t('sessions.more', { shown: SESSION_LIST_MAX, total: historical.length })) + '</div>';
+    }
+  }
+
+  $sessionList.innerHTML = html;
+}
+
+// ===== Option chips helper =====
+function buildOptionChipsHtml(options, selectedMsg) {
+  if (!options || options.length === 0) return '';
+  var chips = options.map(function (opt) {
+    var isSelected = selectedMsg && selectedMsg.trim() === opt.trim();
+    return '<span class="option-chip' + (isSelected ? ' option-chip-selected' : '') + '">' +
+      (isSelected ? ICONS.send + ' ' : '') + esc(opt) + '</span>';
+  }).join('');
+  return '<div class="msg-option-chips"><span class="msg-option-chips-label">' + esc(t('chat.optionsOffered')) + '</span>' + chips + '</div>';
 }
 
 // ===== Rendering: Chat Messages =====
@@ -781,19 +847,23 @@ function renderChatMessages() {
 
   // Render completed timeline items
   sessionTimeline.forEach(function (item) {
-    // Agent message (context + question)
+    var selectedMsg = (item.resolution === 'message') ? item.userMessage : null;
+    // Agent message (context + question + offered options)
     html += '<div class="msg msg-agent">' +
       '<div class="msg-label"><span class="badge badge-agent">' + t('chat.agent') + '</span>' +
       (item.agentName ? ' <span class="agent-name-badge">' + esc(item.agentName) + '</span>' : '') +
       ' ' + esc(formatTime(item.createdAt)) + '</div>' +
       buildContextHtml(item.context || '') +
       (item.question ? '<div class="msg-question md-content">' + microMd(item.question) + '</div>' : '') +
+      buildOptionChipsHtml(item.options, selectedMsg) +
     '</div>';
 
     // User reply or resolution
     if (item.resolution === 'message' && item.userMessage) {
-      html += '<div class="msg msg-user">' +
+      var isOption = item.options && item.options.some(function (o) { return o.trim() === item.userMessage.trim(); });
+      html += '<div class="msg msg-user' + (isOption ? ' msg-user-option' : '') + '">' +
         '<div class="msg-label"><span class="badge badge-you">' + t('chat.you') + '</span> ' + esc(formatTime(item.resolvedAt)) + '</div>' +
+        (isOption ? '<span class="selected-option-badge">' + ICONS.send + '</span> ' : '') +
         esc(item.userMessage) +
       '</div>';
     } else if (item.resolution === 'timeout') {
@@ -811,6 +881,7 @@ function renderChatMessages() {
       ' ' + esc(formatTime(pw.createdAt)) + '</div>' +
       buildContextHtml(pw.context || '', pw.id) +
       (pw.question ? '<div class="msg-question md-content">' + microMd(pw.question) + '</div>' : '') +
+      (pw.options && pw.options.length > 0 ? buildOptionChipsHtml(pw.options, null) : '') +
     '</div>';
     if (idx === 0) {
       html += '<div class="msg-pending">' + ICONS.loader + ' ' + t('chat.waitingReply') + '</div>';
@@ -829,10 +900,25 @@ function renderChatMessages() {
 
 // ===== Rendering: Input Area =====
 function renderInputArea() {
+  var banner = document.getElementById('historyReadOnlyBanner');
   if (sessionPendingWaits.length === 0) {
     $chatInputArea.classList.add('hidden');
+    // Show read-only banner when viewing a session that has history
+    if (banner) {
+      if (selectedSessionId && sessionTimeline.length > 0) {
+        banner.classList.remove('hidden');
+        // Update meta text with interaction count and last activity
+        var sess = sessionMap.get(selectedSessionId);
+        var meta = sess ? (sess.interactionCount + ' ' + t('sessions.interactions') + ' · ' + relativeTime(sess.lastActivity)) : '';
+        var descEl = banner.querySelector('.hrb-desc');
+        if (descEl) descEl.textContent = t('history.readOnlyDesc') + (meta ? ' · ' + meta : '');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
     return;
   }
+  if (banner) banner.classList.add('hidden');
   $chatInputArea.classList.remove('hidden');
   // Input area always responds to the FIRST (oldest) pending wait
   var pw = sessionPendingWaits[0];
@@ -1061,7 +1147,6 @@ async function cancelWait() {
   });
 }
 
-async function cancelAllWaits() {
 // Session list click
 $sessionList.addEventListener('click', function (e) {
   var item = e.target.closest('.session-item');
@@ -1090,7 +1175,24 @@ $quickReplyBar.addEventListener('click', function (e) {
   var optBtn = e.target.closest('.option-btn');
   if (optBtn) {
     var opt = optBtn.getAttribute('data-opt');
-    if (opt) { $replyInput.value = opt; sendReply(); }
+    if (!opt) return;
+    // Disable all option buttons immediately (prevent double-click)
+    var allOpts = $quickReplyBar.querySelectorAll('.option-btn');
+    allOpts.forEach(function (b) {
+      b.disabled = true;
+      if (b === optBtn) {
+        b.classList.add('option-btn-loading');
+        b.innerHTML = ICONS.loader + ' ' + esc(opt);
+      } else {
+        b.style.opacity = '0.3';
+      }
+    });
+    $replyInput.value = opt;
+    sendReply().catch(function () {
+      // Re-enable on error
+      allOpts.forEach(function (b) { b.disabled = false; b.style.opacity = ''; });
+      renderInputArea();
+    });
     return;
   }
   var btn = e.target.closest('.quick-reply-btn');
@@ -1181,7 +1283,14 @@ document.getElementById('langToggleBtn').addEventListener('click', function () {
   t = i18n.t;
   updateLangButton();
   applyStaticI18n();
-  replyTemplates = null; // reset to get translated defaults
+  replyTemplates = null;
+  // Re-render all dynamic sections that don't use data-i18n
+  updateTimeoutHint();
+  renderTemplateManager();
+  if (_mcpUrl) renderSetupGuide(_mcpUrl, _hasAuth);
+  if (Object.keys(acStatus).length > 0) acRenderClientList();
+  renderSessionList();
+  if (selectedSessionId) { renderChatMessages(); renderInputArea(); }
   initialLoad();
 });
 
@@ -1240,16 +1349,39 @@ document.getElementById('templateManager')?.addEventListener('click', function (
 
 // ===== Setup Guide =====
 function buildGuideHtml(url, hasAuth) {
-  var windsurfSnippet = JSON.stringify({ mcpServers: { 'turn-mcp-web': { serverUrl: url } } }, null, 2);
-  var cursorSnippet = JSON.stringify({ mcpServers: { 'turn-mcp-web': { url: url } } }, null, 2);
-  var claudeSnippet = JSON.stringify({ mcpServers: { 'turn-mcp-web': { url: url } } }, null, 2);
+  // Streamable HTTP clients
+  var windsurfSnippet  = JSON.stringify({ mcpServers: { 'turn-mcp-web': { serverUrl: url } } }, null, 2);
+  var cursorSnippet    = JSON.stringify({ mcpServers: { 'turn-mcp-web': { url: url } } }, null, 2);
+  var claudeSnippet    = JSON.stringify({ mcpServers: { 'turn-mcp-web': { url: url } } }, null, 2);
+  var vscodeSnippet    = JSON.stringify({ servers: { 'turn-mcp-web': { type: 'http', url: url } } }, null, 2);
+  var antigravSnippet  = JSON.stringify({ mcpServers: { 'turn-mcp-web': { url: url } } }, null, 2);
+  // CLI clients
+  var claudeCodeCmd    = 'claude mcp add --transport http turn-mcp-web ' + url;
+  var opencodeSnippet  = JSON.stringify({ '$schema': 'https://opencode.ai/config.json', mcp: { 'turn-mcp-web': { type: 'remote', url: url, enabled: true } } }, null, 2);
+  // Messaging / other
+  var openclawSnippet  = JSON.stringify({ mcpServers: { 'turn-mcp-web': { type: 'http', url: url } } }, null, 2);
+  var warpSnippet      = JSON.stringify({ mcpServers: { 'turn-mcp-web': { url: url } } }, null, 2);
+
+  function block(title, desc, code, isCmd) {
+    var inner = isCmd ? codeWrap('<pre><code>' + esc(code) + '</code></pre>') : codeWrap('<pre>' + esc(code) + '</pre>');
+    return '<div class="guide-block"><h5>' + title + '</h5><p>' + desc + '</p>' + inner + '</div>';
+  }
 
   var html = '<h4>' + t('tutorial.heading') + '</h4>' +
     '<p>' + t('tutorial.intro') + '</p>' +
     '<div class="guide-cols">' +
-    '<div class="guide-block"><h5>Windsurf</h5><p>' + t('tutorial.editWindsurf') + '</p>' + codeWrap('<pre>' + esc(windsurfSnippet) + '</pre>') + '</div>' +
-      '<div class="guide-block"><h5>Cursor</h5><p>' + t('tutorial.editCursor') + '</p>' + codeWrap('<pre>' + esc(cursorSnippet) + '</pre>') + '</div>' +
-      '<div class="guide-block"><h5>Claude Desktop</h5><p>' + t('tutorial.editClaude') + '</p>' + codeWrap('<pre>' + esc(claudeSnippet) + '</pre>') + '</div>' +
+      block('Windsurf',      t('tutorial.editWindsurf'),   windsurfSnippet) +
+      block('Cursor',        t('tutorial.editCursor'),     cursorSnippet) +
+      block('Claude Desktop',t('tutorial.editClaude'),     claudeSnippet) +
+      block('VS Code',       t('tutorial.editVSCode'),     vscodeSnippet) +
+      block('Antigravity',   t('tutorial.editAntiGravity'),antigravSnippet) +
+    '</div>' +
+    '<h4>' + t('tutorial.headingCli') + '</h4>' +
+    '<div class="guide-cols">' +
+      block('Claude Code',   t('tutorial.editClaudeCode'), claudeCodeCmd, true) +
+      block('OpenCode',      t('tutorial.editOpenCode'),   opencodeSnippet) +
+      block('Warp',          t('tutorial.editWarp'),       warpSnippet) +
+      block('OpenClaw',      t('tutorial.editOpenClaw'),   openclawSnippet) +
     '</div>';
 
   if (hasAuth) {
@@ -1415,7 +1547,7 @@ async function cancelAllWaits() {
   }
 }
 
-document.getElementById('cancelAllBtn').addEventListener
+document.getElementById('cancelAllBtn').addEventListener('click', function () {
   cancelAllWaits();
 });
 
@@ -1431,7 +1563,7 @@ document.getElementById('saveWebhookBtn')?.addEventListener('click', async funct
     await apiRequest('/api/settings', 'POST', { webhookUrl: url });
     webhookUrl = url;
   } catch (e) {
-    alert(t('chat.error', { error: e.message }));
+    showErrorToast(e.message);
   }
 });
 document.getElementById('clearWebhookBtn')?.addEventListener('click', async function () {
@@ -1440,13 +1572,266 @@ document.getElementById('clearWebhookBtn')?.addEventListener('click', async func
     webhookUrl = '';
     if ($webhookUrlInput) $webhookUrlInput.value = '';
   } catch (e) {
-    alert(t('chat.error', { error: e.message }));
+    showErrorToast(e.message);
   }
 });
+
+// ===== Auto-Configure =====
+var acStatus = {}; // target -> 'configured' | 'not-configured' | 'not-found'
+var acServerUrl = '';
+
+var AC_CLIENTS = [
+  { id: 'windsurf',       label: 'Windsurf' },
+  { id: 'cursor',         label: 'Cursor' },
+  { id: 'claude-desktop', label: 'Claude Desktop' },
+  { id: 'vscode',         label: 'VS Code' },
+  { id: 'antigravity',    label: 'Antigravity' },
+  { id: 'claude-code',    label: 'Claude Code' },
+  { id: 'opencode',       label: 'OpenCode' },
+  { id: 'openclaw',       label: 'OpenClaw' },
+];
+
+async function acLoadStatus() {
+  try {
+    var data = await apiRequest('/api/auto-configure-status');
+    acStatus = data.status || {};
+    acServerUrl = data.serverUrl || '';
+    acRenderClientList();
+    acRenderGenericSnippet();
+  } catch (e) {
+    showErrorToast(e.message);
+  }
+}
+
+function acStatusBadge(status) {
+  if (status === 'configured')     return '<span class="ac-badge ac-badge-ok">' + esc(t('ac.statusOk')) + '</span>';
+  if (status === 'not-configured') return '<span class="ac-badge ac-badge-no">' + esc(t('ac.statusNo')) + '</span>';
+  return '<span class="ac-badge ac-badge-na">' + esc(t('ac.statusNa')) + '</span>';
+}
+
+function acRenderClientList() {
+  var el = document.getElementById('acClientList');
+  if (!el) return;
+  el.innerHTML = AC_CLIENTS.map(function (c) {
+    var s = acStatus[c.id] || 'not-found';
+    return '<div class="ac-client-item">' +
+      '<span class="ac-client-name">' + esc(c.label) + '</span>' +
+      acStatusBadge(s) +
+      (s !== 'configured' ?
+        '<button class="btn-sm primary ac-configure-btn" data-target="' + esc(c.id) + '">' + esc(t('ac.configure')) + '</button>' :
+        '<span class="ac-done-label">' + ICONS.send + '</span>' +
+        '<button class="btn-sm warning ac-clear-btn" data-target="' + esc(c.id) + '">' + esc(t('ac.clear')) + '</button>') +
+    '</div>';
+  }).join('');
+}
+
+function acRenderGenericSnippet() {
+  var el = document.getElementById('acGenericSnippet');
+  if (!el || !acServerUrl) return;
+  var snippet = JSON.stringify({ mcpServers: { 'turn-mcp-web': { url: acServerUrl } } }, null, 2);
+  el.innerHTML = codeWrap('<pre>' + esc(snippet) + '</pre>');
+}
+
+async function acUnconfigureTargets(targets) {
+  try {
+    var data = await apiRequest('/api/auto-unconfigure', 'POST', { targets: targets });
+    var results = data.results || [];
+    results.forEach(function (r) {
+      if (r.action !== 'error') acStatus[r.target] = 'not-configured';
+    });
+    acRenderClientList();
+    var ok = results.filter(function (r) { return r.action !== 'error' && r.action !== 'not-configured' && r.action !== 'not-found'; });
+    var err = results.filter(function (r) { return r.action === 'error'; });
+    if (ok.length > 0) {
+      showToast(t('ac.clearTitle'), ok.map(function (r) { return r.name; }).join(', '), null);
+    }
+    err.forEach(function (r) { showErrorToast(r.name + ': ' + r.error); });
+    return results;
+  } catch (e) {
+    showErrorToast(e.message);
+    return [];
+  }
+}
+
+async function acConfigureTargets(targets) {
+  try {
+    var data = await apiRequest('/api/auto-configure', 'POST', { targets: targets });
+    var results = data.results || [];
+    results.forEach(function (r) {
+      acStatus[r.target] = r.action === 'error' ? 'not-configured' : 'configured';
+    });
+    acRenderClientList();
+    // Show result toasts
+    var ok = results.filter(function (r) { return r.action !== 'error'; });
+    var err = results.filter(function (r) { return r.action === 'error'; });
+    if (ok.length > 0) {
+      showToast(
+        t('ac.successTitle'),
+        ok.map(function (r) { return r.name + ' → ' + r.displayPath; }).join(', '),
+        null
+      );
+    }
+    err.forEach(function (r) { showErrorToast(r.name + ': ' + r.error); });
+    return results;
+  } catch (e) {
+    showErrorToast(e.message);
+    return [];
+  }
+}
+
+// Tab switching
+document.querySelectorAll('.ac-tab').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var mode = btn.getAttribute('data-mode');
+    document.querySelectorAll('.ac-tab').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    ['acTargeted', 'acGeneric', 'acSystem'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+    var panel = document.getElementById(
+      mode === 'targeted' ? 'acTargeted' : mode === 'generic' ? 'acGeneric' : 'acSystem'
+    );
+    if (panel) panel.classList.remove('hidden');
+    if (mode !== 'targeted') return;
+    if (Object.keys(acStatus).length === 0) acLoadStatus();
+  });
+});
+
+// Configure all
+document.getElementById('acConfigAllBtn')?.addEventListener('click', async function () {
+  var notConfigured = AC_CLIENTS
+    .filter(function (c) { return acStatus[c.id] !== 'configured'; })
+    .map(function (c) { return c.id; });
+  if (notConfigured.length === 0) {
+    showToast(t('ac.successTitle'), t('ac.allAlready'), null);
+    return;
+  }
+  await acConfigureTargets(notConfigured);
+});
+
+// Clear all
+document.getElementById('acClearAllBtn')?.addEventListener('click', async function () {
+  var configured = AC_CLIENTS
+    .filter(function (c) { return acStatus[c.id] === 'configured'; })
+    .map(function (c) { return c.id; });
+  if (configured.length === 0) {
+    showToast(t('ac.clearTitle'), t('ac.noneConfigured'), null);
+    return;
+  }
+  await acUnconfigureTargets(configured);
+});
+
+// Refresh
+document.getElementById('acRefreshBtn')?.addEventListener('click', function () { acLoadStatus(); });
+
+// Per-client configure/clear buttons
+document.getElementById('acClientList')?.addEventListener('click', async function (e) {
+  var configBtn = e.target.closest('.ac-configure-btn');
+  if (configBtn) {
+    var target = configBtn.getAttribute('data-target');
+    if (!target) return;
+    configBtn.disabled = true;
+    configBtn.textContent = t('ac.configuring');
+    await acConfigureTargets([target]);
+    return;
+  }
+  var clearBtn = e.target.closest('.ac-clear-btn');
+  if (clearBtn) {
+    var target2 = clearBtn.getAttribute('data-target');
+    if (!target2) return;
+    clearBtn.disabled = true;
+    clearBtn.textContent = t('ac.clearing');
+    await acUnconfigureTargets([target2]);
+  }
+});
+
+// Write / clear generic (third-party)
+function acUpdateGenericResult(results) {
+  var resultEl = document.getElementById('acGenericResult');
+  if (!resultEl || !results.length) return;
+  var r = results[0];
+  resultEl.textContent = r.action === 'error'
+    ? t('ac.errorMsg', { msg: r.error })
+    : t('ac.writtenTo', { path: r.displayPath });
+  resultEl.className = 'ac-result-msg ' + (r.action === 'error' ? 'ac-result-err' : 'ac-result-ok');
+}
+document.getElementById('acWriteGenericBtn')?.addEventListener('click', async function () {
+  var results = await acConfigureTargets(['system-mcp']);
+  acUpdateGenericResult(results);
+});
+document.getElementById('acClearGenericBtn')?.addEventListener('click', async function () {
+  var results = await acUnconfigureTargets(['system-mcp']);
+  acUpdateGenericResult(results);
+});
+
+// Configure system
+document.getElementById('acConfigSystemBtn')?.addEventListener('click', async function () {
+  var results = await acConfigureTargets(['system-shell', 'system-mcp']);
+  acRenderSystemResults(results);
+});
+
+// Clear system
+document.getElementById('acClearSystemBtn')?.addEventListener('click', async function () {
+  var results = await acUnconfigureTargets(['system-shell', 'system-mcp']);
+  acRenderSystemResults(results);
+});
+
+function acRenderSystemResults(results) {
+  var listEl = document.getElementById('acSystemResults');
+  if (!listEl) return;
+  listEl.innerHTML = results.map(function (r) {
+    var cls = r.action === 'error' ? 'ac-result-err' : 'ac-result-ok';
+    var msg = r.action === 'error' ? r.error : r.displayPath + ' (' + t('ac.action_' + r.action, {}) + ')';
+    return '<div class="ac-result-item ' + cls + '">' + esc(r.name) + ': ' + esc(msg) + '</div>';
+  }).join('');
+  listEl.classList.remove('hidden');
+}
+
+// Load status when settings panel opens
+document.getElementById('settingsToggleBtn').addEventListener('click', function () {
+  if (Object.keys(acStatus).length === 0) acLoadStatus();
+}, true); // capture so it runs before the existing listener
 
 // ===== Init =====
 $apiKeyInput.value = apiKey;
 renderTemplateManager();
+
+// ===== Language Picker (first-launch) =====
+function showLangPicker() {
+  var modal = document.getElementById('langPickerModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function hideLangPicker(afterFn) {
+  var modal = document.getElementById('langPickerModal');
+  if (!modal) { if (afterFn) afterFn(); return; }
+  modal.classList.add('lang-picker-exit');
+  setTimeout(function () {
+    modal.classList.add('hidden');
+    modal.classList.remove('lang-picker-exit');
+    if (afterFn) afterFn();
+  }, 260);
+}
+
+document.querySelectorAll('.lang-pick-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var lang = btn.getAttribute('data-lang');
+    // Mark as explicitly selected BEFORE hiding so detectLang() returns it on next load
+    i18n.setLang(lang);
+    t = i18n.t;
+    // Apply language immediately
+    applyStaticI18n();
+    updateLangButton();
+    updateNotifButtons();
+    updateTimeoutHint();
+    renderTemplateManager();
+    if (_mcpUrl) renderSetupGuide(_mcpUrl, _hasAuth);
+    hideLangPicker(function () {
+      connectSSE();
+    });
+  });
+});
 
 loadPublicConfig()
   .then(function () { return initialLoad(); })
@@ -1458,7 +1843,12 @@ loadPublicConfig()
       overlay.classList.add('loaded');
       setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 800);
     }
-    connectSSE();
+    // First-time visit: show language picker instead of connecting immediately
+    if (typeof i18n !== 'undefined' && !i18n.hasExplicitSelection()) {
+      showLangPicker();
+    } else {
+      connectSSE();
+    }
   })
   .catch(function () {
     // Still reveal UI on error so user can see connection status
@@ -1469,6 +1859,10 @@ loadPublicConfig()
       setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 800);
     }
     updateConnStatus('disconnected');
+    // Still show picker on error if no selection yet
+    if (typeof i18n !== 'undefined' && !i18n.hasExplicitSelection()) {
+      showLangPicker();
+    }
   });
 
 // Service worker

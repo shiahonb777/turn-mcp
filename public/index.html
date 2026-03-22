@@ -84,6 +84,16 @@
           </button>
         </div>
         <div class="chat-messages" id="chatMessages"></div>
+        <!-- Read-only banner shown for historical (completed) sessions -->
+        <div id="historyReadOnlyBanner" class="history-readonly-banner hidden">
+          <div class="hrb-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="hrb-body">
+            <span class="hrb-title" data-i18n="history.readOnlyTitle"></span>
+            <span class="hrb-desc" data-i18n="history.readOnlyDesc"></span>
+          </div>
+        </div>
         <div class="chat-input-area hidden" id="chatInputArea">
           <div class="pending-context" id="pendingContext"></div>
           <div class="quick-reply-bar" id="quickReplyBar"></div>
@@ -150,6 +160,53 @@
               <button id="clearWebhookBtn" class="btn secondary" data-i18n="btn.clear"></button>
             </div>
           </section>
+          <!-- ===== One-click client configuration ===== -->
+          <section class="settings-section" id="autoConfigSection">
+            <h3 data-i18n="settings.autoConfig"></h3>
+            <!-- Mode tabs -->
+            <div class="ac-tabs">
+              <button class="ac-tab active" data-mode="targeted" data-i18n="ac.modeTargeted"></button>
+              <button class="ac-tab" data-mode="generic" data-i18n="ac.modeGeneric"></button>
+              <button class="ac-tab" data-mode="system" data-i18n="ac.modeSystem"></button>
+            </div>
+
+            <!-- Targeted mode -->
+            <div id="acTargeted" class="ac-panel">
+              <p class="muted small" data-i18n="ac.targetedDesc"></p>
+              <div id="acClientList" class="ac-client-list"></div>
+              <div class="settings-row" style="margin-top:10px">
+                <button id="acConfigAllBtn" class="btn primary" data-i18n="ac.configAll"></button>
+                <button id="acClearAllBtn" class="btn warning" data-i18n="ac.clearAll"></button>
+                <button id="acRefreshBtn" class="btn secondary" data-i18n="ac.refresh"></button>
+              </div>
+            </div>
+
+            <!-- Generic / third-party mode -->
+            <div id="acGeneric" class="ac-panel hidden">
+              <p class="muted small" data-i18n="ac.genericDesc"></p>
+              <div id="acGenericSnippet" class="ac-snippet-wrap"></div>
+              <div class="settings-row" style="margin-top:10px">
+                <button id="acWriteGenericBtn" class="btn primary" data-i18n="ac.writeGeneric"></button>
+                <button id="acClearGenericBtn" class="btn warning" data-i18n="ac.clearGeneric"></button>
+              </div>
+              <p id="acGenericResult" class="ac-result-msg hidden"></p>
+            </div>
+
+            <!-- System environment mode -->
+            <div id="acSystem" class="ac-panel hidden">
+              <p class="muted small" data-i18n="ac.systemDesc"></p>
+              <ul class="ac-system-targets">
+                <li><code>~/.zshrc</code> / <code>~/.bashrc</code> &mdash; <span data-i18n="ac.systemShellDesc"></span></li>
+                <li><code>~/.config/mcp/servers.json</code> &mdash; <span data-i18n="ac.systemMcpDesc"></span></li>
+              </ul>
+              <div class="settings-row" style="margin-top:10px">
+                <button id="acConfigSystemBtn" class="btn primary" data-i18n="ac.configSystem"></button>
+                <button id="acClearSystemBtn" class="btn warning" data-i18n="ac.clearSystem"></button>
+              </div>
+              <div id="acSystemResults" class="ac-results-list hidden"></div>
+            </div>
+          </section>
+
           <section class="settings-section">
             <h3 data-i18n="settings.guide"></h3>
             <div class="endpoint-box" style="justify-content:flex-start">
@@ -173,6 +230,26 @@
       <div class="modal-actions">
         <button id="confirmCancel" class="btn secondary" data-i18n="confirm.cancel"></button>
         <button id="confirmOk" class="btn primary" data-i18n="confirm.ok"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Language picker — shown on first launch only -->
+  <div id="langPickerModal" class="lang-picker-modal hidden" role="dialog" aria-modal="true" aria-label="Select language">
+    <div class="lang-picker-card">
+      <div class="lang-picker-logo">Turn MCP</div>
+      <p class="lang-picker-hint">Select your language &nbsp;/&nbsp; 选择语言</p>
+      <div class="lang-picker-btns">
+        <button class="lang-pick-btn" data-lang="en">
+          <span class="lang-pick-flag">🇺🇸</span>
+          <span class="lang-pick-name">English</span>
+          <span class="lang-pick-native">English</span>
+        </button>
+        <button class="lang-pick-btn" data-lang="zh">
+          <span class="lang-pick-flag">🇨🇳</span>
+          <span class="lang-pick-name">Chinese</span>
+          <span class="lang-pick-native">中文</span>
+        </button>
       </div>
     </div>
   </div>

@@ -19,6 +19,7 @@ import { SseManager } from './sse-manager.js';
 import { TurnWaitMcpServer } from './turn-mcp-server.js';
 import { WaitStore } from './wait-store.js';
 import { WebhookNotifier } from './webhook.js';
+import { TARGETED_CLIENTS, checkClientStatus, configureBatch, unconfigureBatch } from './auto-configure.js';
 
 // Load persisted settings before starting server
 loadSettings();
@@ -642,6 +643,51 @@ async function handleApiRequest(req: IncomingMessage, res: ServerResponse, pathn
       count: waits.length,
       reinforcementSuffix: APP_CONFIG.reinforcementSuffix,
     });
+    return;
+  }
+
+  // GET /api/auto-configure-status — check which clients are already configured
+  if (req.method === 'GET' && pathname === '/api/auto-configure-status') {
+    if (!ensureAuthorizedApi(req, res, pathname, 'operator')) return;
+    const serverUrl = `http://${APP_CONFIG.httpHost}:${APP_CONFIG.httpPort}${APP_CONFIG.mcpPath}`;
+    const targets = [...TARGETED_CLIENTS, 'system-shell', 'system-mcp'];
+    const status: Record<string, string> = {};
+    for (const t of targets) status[t] = checkClientStatus(t, serverUrl);
+    sendJson(res, 200, { ok: true, serverUrl, status });
+    return;
+  }
+
+  // POST /api/auto-configure — write config to selected clients
+  if (req.method === 'POST' && pathname === '/api/auto-configure') {
+    if (!ensureAuthorizedApi(req, res, pathname, 'operator')) return;
+    const body = await readJsonBody(req) as Record<string, unknown> | undefined;
+    const rawTargets = body?.targets;
+    if (!Array.isArray(rawTargets) || rawTargets.length === 0) {
+      sendJson(res, 400, { error: '"targets" must be a non-empty array of client IDs.' });
+      return;
+    }
+    const targets = rawTargets.filter((t): t is string => typeof t === 'string');
+    const overrideUrl = typeof body?.serverUrl === 'string' ? body.serverUrl.trim() : '';
+    const serverUrl = overrideUrl || `http://${APP_CONFIG.httpHost}:${APP_CONFIG.httpPort}${APP_CONFIG.mcpPath}`;
+    const results = configureBatch(targets, serverUrl);
+    eventLogger.log('auto_configure', { targets, serverUrl, results: results.map(r => ({ target: r.target, action: r.action })) });
+    sendJson(res, 200, { ok: true, serverUrl, results });
+    return;
+  }
+
+  // POST /api/auto-unconfigure — remove turn-mcp-web from selected clients
+  if (req.method === 'POST' && pathname === '/api/auto-unconfigure') {
+    if (!ensureAuthorizedApi(req, res, pathname, 'operator')) return;
+    const body = await readJsonBody(req) as Record<string, unknown> | undefined;
+    const rawTargets = body?.targets;
+    if (!Array.isArray(rawTargets) || rawTargets.length === 0) {
+      sendJson(res, 400, { error: '"targets" must be a non-empty array.' });
+      return;
+    }
+    const targets = rawTargets.filter((t): t is string => typeof t === 'string');
+    const results = unconfigureBatch(targets);
+    eventLogger.log('auto_unconfigure', { targets, results: results.map(r => ({ target: r.target, action: r.action })) });
+    sendJson(res, 200, { ok: true, results });
     return;
   }
 

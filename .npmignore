@@ -27,6 +27,10 @@ examples/
 .turn-mcp-settings.json
 *.jsonl
 
+# Quick-start shell scripts (only needed when cloning the repo)
+start.sh
+start.bat
+
 # Editor
 .vscode/
 .idea/

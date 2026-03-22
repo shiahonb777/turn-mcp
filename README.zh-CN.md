@@ -25,6 +25,22 @@
 
 ## 快速开始
 
+### 方式 A — 双击启动（无需命令行）
+
+**macOS / Linux** — 双击 `start.sh`，或在终端执行：
+```bash
+bash start.sh
+```
+
+**Windows** — 双击 `start.bat`
+
+脚本会自动安装依赖、构建项目（仅首次）并打开浏览器。
+
+> **前提条件**：需要安装 [Node.js >= 18](https://nodejs.org)
+> macOS：`brew install node` &nbsp;|&nbsp; Windows：`winget install OpenJS.NodeJS`
+
+### 方式 B — npm 命令
+
 ```bash
 npx turn-mcp-web
 ```

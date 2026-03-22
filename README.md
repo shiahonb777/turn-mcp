@@ -25,11 +25,21 @@
 
 ## Quick Start
 
+### Option A — Double-click to launch (no terminal needed)
+
+**macOS / Linux** — double-click `start.sh`, or:
 ```bash
-npx turn-mcp-web
+bash start.sh
 ```
 
-Or from source:
+**Windows** — double-click `start.bat`
+
+The script automatically installs dependencies, builds the project (first run only), and opens the browser.
+
+> **Prerequisite:** [Node.js >= 18](https://nodejs.org) must be installed.
+> macOS: `brew install node` &nbsp;|&nbsp; Windows: `winget install OpenJS.NodeJS`
+
+### Option B — npm commands
 
 ```bash
 npm install && npm run build && npm start
