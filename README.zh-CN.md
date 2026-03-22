@@ -1,6 +1,6 @@
 # turn-mcp-web
 
-自托管的 MCP 服务器与浏览器控制台组合。MCP 协议存在一个潜在风险：缺少人工检查点的 Agent 很容易进入失控循环，默默放大 API 计费资源消耗——`turn.wait` 通过强制插入人工审批节点封堵该风险。AI Agent 调用 `turn.wait` 暂停执行并向操作员提问，操作员通过浏览器控制台回复后继续。MCP 服务、浏览器控制台和 REST API 均由同一个 Node.js 进程托管，无任何外部运行时依赖。
+自托管的 MCP 服务器与浏览器控制台组合。一个 MCP 协议漏洞，可以放大计费 API 模型方案中资源的使用。AI Agent 调用
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.17-brightgreen)](https://nodejs.org)
