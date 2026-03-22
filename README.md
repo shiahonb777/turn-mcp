@@ -1,6 +1,6 @@
 # turn-mcp-web
 
-Self-hosted MCP server and browser console that provides a `turn.wait` human-in-the-loop checkpoint for AI agents.
+A self-hosted MCP server paired with a browser-based control console. AI agents call `turn.wait` to pause execution, ask the human operator a question, and resume once the operator replies. The MCP server, the browser console, and the REST API are all hosted by a single Node.js process with zero external dependencies.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.17-brightgreen)](https://nodejs.org)
@@ -10,6 +10,8 @@ Self-hosted MCP server and browser console that provides a `turn.wait` human-in-
 ---
 
 ## Quick Start
+
+Each script checks for Node.js, installs dependencies, and builds the project on the first run, then starts the server and opens the browser.
 
 **macOS** — double-click `start.command`
 
@@ -35,6 +37,9 @@ MCP endpoint → `http://127.0.0.1:3737/mcp`
 ## MCP Client Setup
 
 ### Streamable HTTP
+
+For IDE-based clients (Cursor, Windsurf, Claude Code, VS Code Copilot, Antigravity). Add to the client’s MCP config file:
+
 ```json
 {
   "mcpServers": {
@@ -47,7 +52,10 @@ MCP endpoint → `http://127.0.0.1:3737/mcp`
 
 > Windsurf uses `"serverUrl"` instead of `"url"`.
 
-### stdio (Claude Desktop, Cline, Continue)
+### stdio
+
+For clients that spawn MCP servers as child processes (Claude Desktop, Cline, Continue). The process also binds the browser console on HTTP so you can still reply via `http://127.0.0.1:3737/`.
+
 ```json
 {
   "mcpServers": {
@@ -62,6 +70,8 @@ MCP endpoint → `http://127.0.0.1:3737/mcp`
 ---
 
 ## Python Client
+
+For Python agent frameworks that don’t use MCP (LangChain, LangGraph, AutoGen, plain scripts). The client calls the long-poll REST endpoint `POST /api/waits/create-and-wait` and blocks until the operator replies in the browser console.
 
 ```bash
 pip install ./python-client
@@ -78,7 +88,7 @@ reply = client.wait(
 )
 ```
 
-Async support and LangChain/LangGraph examples: [`python-client/README.md`](./python-client/README.md)
+Async variant and LangChain / LangGraph integration examples: [`python-client/README.md`](./python-client/README.md)
 
 ---
 
@@ -129,17 +139,23 @@ Async support and LangChain/LangGraph examples: [`python-client/README.md`](./py
 
 ## Authentication
 
-Pass key via `x-turn-mcp-api-key` header or `Authorization: Bearer <key>`.
+Auth is disabled by default. Set `TURN_MCP_API_KEY` (and optionally `TURN_MCP_VIEWER_API_KEY`) to enable it. Pass the key on every request via either header:
 
-- `operator` — full access (MCP + reply/cancel + event log)
-- `viewer` — read-only (view waits and history)
+```
+x-turn-mcp-api-key: <key>
+Authorization: Bearer <key>
+```
+
+Two roles are supported:
+
+- `operator` — full access: call MCP tools, submit replies, cancel waits, read event log
+- `viewer` — read-only: inspect pending waits and session history, subscribe to SSE
 
 ---
 
 ## Webhook Security (HMAC)
 
-When `TURN_MCP_WEBHOOK_SECRET` is set, every outbound webhook POST includes  
-`x-turn-mcp-signature: sha256=<hex>`.
+When `TURN_MCP_WEBHOOK_SECRET` is set, every outbound webhook POST is signed with HMAC-SHA256. The signature is sent in the `x-turn-mcp-signature` header as `sha256=<hex>`. Verify it on the receiving end to ensure the payload has not been tampered with.
 
 ```python
 import hmac, hashlib
@@ -152,6 +168,8 @@ def verify(body: bytes, header: str, secret: str) -> bool:
 ---
 
 ## API
+
+All endpoints return JSON. Error responses include an `error` string field. Paginated endpoints return `total`, `count`, and `pagination.hasMore`.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
@@ -178,6 +196,8 @@ def verify(body: bytes, header: str, secret: str) -> bool:
 
 ## Testing
 
+`test:unit` runs directly against the compiled `dist/` output and requires no running server. `test:ui` starts a real server on a temporary port and tests browser interactions end-to-end.
+
 ```bash
 npm test               # unit tests + UI integration tests
 npm run test:unit      # WaitStore unit tests only
@@ -188,13 +208,19 @@ npm run test:ui        # UI integration tests
 
 ## Docker
 
+Set `TURN_MCP_HTTP_HOST=0.0.0.0` when running inside a container so the port is accessible from the host. Mount a volume to `/app/logs` if you want history and event log files to survive container restarts.
+
 ```bash
 docker build -t turn-mcp-web .
 docker run --rm -p 3737:3737 \
   -e TURN_MCP_HTTP_HOST=0.0.0.0 \
   -e TURN_MCP_API_KEY=your_key \
+  -e TURN_MCP_HISTORY_FILE=/app/logs/history.jsonl \
+  -v "$(pwd)/logs:/app/logs" \
   turn-mcp-web
 ```
+
+Alternatively, use the included Compose file:
 
 ```bash
 docker compose up --build
@@ -203,6 +229,8 @@ docker compose up --build
 ---
 
 ## Architecture
+
+The entire stack runs in a single `node dist/server.js` process. `wait-store.ts` is the core: it keeps pending waits as in-memory Promises and resolves them when the operator replies via the REST API. SSE pushes events to the browser in real time. History is optionally persisted to JSONL files so it survives restarts.
 
 ```
 src/

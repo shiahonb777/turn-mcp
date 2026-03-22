@@ -1,6 +1,6 @@
 # turn-mcp-web
 
-自托管 MCP 服务器与浏览器控制台，为 AI Agent 提供 `turn.wait` 人在环路检查点。
+自托管的 MCP 服务器与浏览器控制台组合。AI Agent 调用 `turn.wait` 暂停执行并向操作员提问，操作员通过浏览器控制台回复后继续。MCP 服务、浏览器控制台和 REST API 均由同一个 Node.js 进程托管，无任何外部运行时依赖。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.17-brightgreen)](https://nodejs.org)
@@ -10,6 +10,8 @@
 ---
 
 ## 快速开始
+
+各脚本首次运行时自动检测 Node.js、安装依赖并构建项目，随后启动服务器并打开浏览器。
 
 **macOS** — 双击 `start.command`
 
@@ -35,6 +37,9 @@ MCP 端点 → `http://127.0.0.1:3737/mcp`
 ## MCP 客户端配置
 
 ### Streamable HTTP
+
+适用于 IDE 内置客户端（Cursor、Windsurf、Claude Code、VS Code Copilot、Antigravity）。添加到对应客户端的 MCP 配置文件：
+
 ```json
 {
   "mcpServers": {
@@ -48,6 +53,9 @@ MCP 端点 → `http://127.0.0.1:3737/mcp`
 > Windsurf 使用 `"serverUrl"` 代替 `"url"`。
 
 ### stdio（Claude Desktop、Cline、Continue）
+
+适用于以子进程方式启动 MCP 服务的客户端。运行后 HTTP 端口仍可用，可通过 `http://127.0.0.1:3737/` 回复。
+
 ```json
 {
   "mcpServers": {
@@ -62,6 +70,8 @@ MCP 端点 → `http://127.0.0.1:3737/mcp`
 ---
 
 ## Python 客户端
+
+适用于不使用 MCP 的 Python Agent 框架（LangChain、LangGraph、AutoGen、普通脚本）。客户端调用长轮询端点 `POST /api/waits/create-and-wait`，阻塞直至操作员在浏览器控制台回复。
 
 ```bash
 pip install ./python-client
@@ -129,17 +139,23 @@ reply = client.wait(
 
 ## 鉴权
 
-通过 `x-turn-mcp-api-key` 请求头或 `Authorization: Bearer <key>` 传递密钥。
+鉴权默认关闭。设置 `TURN_MCP_API_KEY`（可选设置 `TURN_MCP_VIEWER_API_KEY`）即可开启。每个请求通过以下任一方式传递密钥：
 
-- `operator` — 完整访问（MCP + 回复/取消 + 事件日志）
-- `viewer` — 只读（查看等待任务与历史）
+```
+x-turn-mcp-api-key: <key>
+Authorization: Bearer <key>
+```
+
+支持两种角色：
+
+- `operator` — 完整访问：调用 MCP 工具、提交回复、取消等待、读取事件日志
+- `viewer` — 只读：查看等待任务、会话历史、订阅 SSE
 
 ---
 
 ## Webhook 安全（HMAC）
 
-设置 `TURN_MCP_WEBHOOK_SECRET` 后，每次外发 webhook POST 附带  
-`x-turn-mcp-signature: sha256=<hex>`。
+设置 `TURN_MCP_WEBHOOK_SECRET` 后，每次外发的 webhook POST 均用 HMAC-SHA256 签名，签名通过 `x-turn-mcp-signature` 请求头以 `sha256=<hex>` 格式发送。在接收端验证以确保 payload 未被篡改。
 
 ```python
 import hmac, hashlib
@@ -152,6 +168,8 @@ def verify(body: bytes, header: str, secret: str) -> bool:
 ---
 
 ## API
+
+所有端点返回 JSON。错误响应包含 `error` 字符串字段。分页端点返回 `total`、`count` 和 `pagination.hasMore`。
 
 | 方法 | 路径 | 鉴权 | 说明 |
 |---|---|---|---|
@@ -178,6 +196,8 @@ def verify(body: bytes, header: str, secret: str) -> bool:
 
 ## 测试
 
+`test:unit` 直接对编译后的 `dist/` 运行，无需启动服务器。`test:ui` 在临时端口启动真实服务器，端到端测试浏览器交互。
+
 ```bash
 npm test               # 单元测试 + UI 集成测试
 npm run test:unit      # 仅 WaitStore 单元测试
@@ -187,6 +207,8 @@ npm run test:ui        # UI 集成测试
 ---
 
 ## Docker
+
+在容器内运行时需要设置 `TURN_MCP_HTTP_HOST=0.0.0.0` 以便宿主机访问端口。挂载卷到 `/app/logs` 可使历史和事件日志在容器重启后保留。
 
 ```bash
 docker build -t turn-mcp-web .
@@ -203,6 +225,8 @@ docker compose up --build
 ---
 
 ## 架构
+
+整个栈运行在单个 `node dist/server.js` 进程中。`wait-store.ts` 是核心：将待处理的等待保存为内存 Promise，当操作员通过 REST API 回复时解析。SSE 实时将事件推送到浏览器。历史记录可选地持久化到 JSONL 文件以在重启后恢复。
 
 ```
 src/
