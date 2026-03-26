@@ -14,7 +14,7 @@ export interface WaitSummary {
 
 export interface WaitHistoryItem extends WaitSummary {
   resolvedAt: number;
-  resolution: 'message' | 'timeout' | 'canceled';
+  resolution: 'message' | 'timeout' | 'canceled' | 'interrupted';
   finalMessageLength: number;
   userMessage?: string;
 }
@@ -31,7 +31,7 @@ export interface SessionSummary {
   sessionId: string;
   interactionCount: number;
   lastActivity: number;
-  status: 'pending' | 'message' | 'timeout' | 'canceled' | 'completed';
+  status: 'pending' | 'message' | 'timeout' | 'canceled' | 'interrupted' | 'completed';
   /** All currently-pending waits for this session (may be > 1). */
   pendingWaits?: WaitSummary[];
   /** @deprecated Use pendingWaits[0]. Kept for backward-compat. */
@@ -42,6 +42,7 @@ export type WaitResolution =
   | { kind: 'message'; text: string }
   | { kind: 'timeout' }
   | { kind: 'canceled' }
+  | { kind: 'interrupted' }
   | { kind: 'busy'; activeWaitIds: string[] };
 
 export type WaitStoreEvent =
@@ -430,6 +431,27 @@ export class WaitStore {
       this.history.length = APP_CONFIG.waitHistoryMaxItems;
       this.persistence?.rewrite(this.history);
     }
+  }
+
+  /**
+   * Called during graceful shutdown: saves all in-flight pending waits
+   * to history with resolution='interrupted' so they appear in the browser
+   * console after the server restarts.
+   */
+  shutdownPersist(): void {
+    const now = Date.now();
+    for (const [, state] of this.waits) {
+      const { summary } = state;
+      if (state.timeoutTimer) clearTimeout(state.timeoutTimer);
+      this.pushHistory({
+        ...summary,
+        resolvedAt: now,
+        resolution: 'interrupted',
+        finalMessageLength: 0,
+      });
+    }
+    this.waits.clear();
+    this.sessionActiveWaits.clear();
   }
 
   private emit(event: WaitStoreEvent): void {

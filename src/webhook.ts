@@ -8,6 +8,8 @@ const TIMEOUT_MS = 5_000;
 const MAX_RETRIES = 3;
 const RETRY_BASE_MS = 1_000;
 
+// ─── Payload builders ─────────────────────────────────────────────────────────
+
 function buildSlackPayload(event: { type: string; [key: string]: unknown }): string {
   const ts = new Date().toISOString();
   const fields: Array<{ type: string; text: { type: string; text: string } }> = [
@@ -15,29 +17,40 @@ function buildSlackPayload(event: { type: string; [key: string]: unknown }): str
     { type: 'mrkdwn', text: { type: 'mrkdwn', text: `*Time:* ${ts}` } },
   ];
   if (event.sessionId) fields.push({ type: 'mrkdwn', text: { type: 'mrkdwn', text: `*Session:* \`${String(event.sessionId).slice(0, 20)}\`` } });
-  if (event.context) fields.push({ type: 'mrkdwn', text: { type: 'mrkdwn', text: `*Context:* ${String(event.context).slice(0, 200)}` } });
-  if (event.question) fields.push({ type: 'mrkdwn', text: { type: 'mrkdwn', text: `*Question:* ${String(event.question).slice(0, 200)}` } });
-
+  if (event.context)   fields.push({ type: 'mrkdwn', text: { type: 'mrkdwn', text: `*Context:* ${String(event.context).slice(0, 200)}` } });
+  if (event.question)  fields.push({ type: 'mrkdwn', text: { type: 'mrkdwn', text: `*Question:* ${String(event.question).slice(0, 200)}` } });
   return JSON.stringify({
     text: `Turn MCP: \`${event.type}\``,
-    blocks: [
-      { type: 'section', fields: fields.map(f => f.text) },
-    ],
+    blocks: [{ type: 'section', fields: fields.map(f => f.text) }],
   });
 }
+
+function buildDiscordPayload(event: { type: string; [key: string]: unknown }): string {
+  const lines: string[] = [];
+  if (event['sessionId']) lines.push(`**Session:** \`${String(event['sessionId']).slice(0, 20)}\``);
+  if (event['context'])   lines.push(`**Context:** ${String(event['context']).slice(0, 300)}`);
+  if (event['question'])  lines.push(`**Question:** ${String(event['question']).slice(0, 200)}`);
+  return JSON.stringify({
+    embeds: [{
+      title: `Turn MCP: \`${event.type}\``,
+      description: lines.join('\n') || `Event type: ${event.type}`,
+      color: 5814783,
+      timestamp: new Date().toISOString(),
+    }],
+  });
+}
+
+// ─── WebhookNotifier ──────────────────────────────────────────────────────────
 
 export class WebhookNotifier {
   private readonly url: string;
   private readonly events: Set<string>;
   private readonly secret: string;
-  private readonly format: 'json' | 'slack';
+  private readonly format: 'json' | 'slack' | 'discord';
 
   constructor(url: string, eventsFilter: string) {
     this.url = url;
-    const parsed = eventsFilter
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
+    const parsed = eventsFilter.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
     this.events = new Set(parsed.length > 0 ? parsed : ['wait_created']);
     this.secret = APP_CONFIG.webhookSecret;
     this.format = APP_CONFIG.webhookFormat;
@@ -45,13 +58,12 @@ export class WebhookNotifier {
   }
 
   notify(event: { type: string; [key: string]: unknown }): void {
-    if (!this.events.has(event.type)) {
-      return;
-    }
+    if (!this.events.has(event.type)) return;
 
-    const payload = this.format === 'slack'
-      ? buildSlackPayload(event)
-      : JSON.stringify({ type: event.type, ts: new Date().toISOString(), data: event });
+    const payload =
+      this.format === 'slack'   ? buildSlackPayload(event) :
+      this.format === 'discord' ? buildDiscordPayload(event) :
+      JSON.stringify({ type: event.type, ts: new Date().toISOString(), data: event });
 
     this.sendWithRetry(payload, event.type, 0);
   }
@@ -95,14 +107,59 @@ export class WebhookNotifier {
     const req = transport.request(options, (res) => {
       res.resume();
       logger.info(`Webhook ${eventType} -> ${res.statusCode} (attempt ${attempt + 1})`);
-      if (res.statusCode && res.statusCode >= 500) {
-        retry(`HTTP ${res.statusCode}`);
-      }
+      if (res.statusCode && res.statusCode >= 500) retry(`HTTP ${res.statusCode}`);
     });
 
     req.on('error', (err) => retry(err.message));
     req.on('timeout', () => { req.destroy(); retry('timeout'); });
+    req.write(payload);
+    req.end();
+  }
+}
 
+// ─── TelegramNotifier ─────────────────────────────────────────────────────────
+
+export class TelegramNotifier {
+  private readonly events: Set<string>;
+
+  constructor(
+    private readonly botToken: string,
+    private readonly chatId: string,
+    eventsFilter: string
+  ) {
+    const parsed = eventsFilter.split(',').map(s => s.trim()).filter(Boolean);
+    this.events = new Set(parsed.length > 0 ? parsed : ['wait_created']);
+    logger.info(`Telegram notifications enabled (events: ${Array.from(this.events).join(',')})`);
+  }
+
+  notify(event: { type: string; [key: string]: unknown }): void {
+    if (!this.events.has(event.type)) return;
+
+    const lines: string[] = [`<b>Turn MCP: ${event.type}</b>\n`];
+    if (event['sessionId']) lines.push(`🔑 Session: <code>${String(event['sessionId']).slice(0, 20)}</code>`);
+    if (event['agentName']) lines.push(`🤖 Agent: <b>${String(event['agentName'])}</b>`);
+    if (event['context'])   lines.push(`\n${String(event['context']).slice(0, 800)}`);
+    if (event['question'])  lines.push(`\n❓ ${String(event['question']).slice(0, 200)}`);
+    const text = lines.join('\n');
+
+    const payload = JSON.stringify({ chat_id: this.chatId, text, parse_mode: 'HTML' });
+    const urlObj = new URL(`https://api.telegram.org/bot${this.botToken}/sendMessage`);
+    const options: http.RequestOptions = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname,
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'content-length': Buffer.byteLength(payload),
+      },
+      timeout: 8_000,
+    };
+    const req = https.request(options, (res) => {
+      res.resume();
+      logger.info(`Telegram ${event.type} -> ${res.statusCode}`);
+    });
+    req.on('error', (err) => logger.error(`telegram ${event.type}`, err));
+    req.on('timeout', () => req.destroy());
     req.write(payload);
     req.end();
   }

@@ -1,0 +1,36 @@
+name: Publish Python Client to PyPI
+
+on:
+  push:
+    tags:
+      - "python-v*"   # trigger with: git tag python-v0.1.0 && git push --tags
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # for trusted publishing (no API token needed if configured)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build distribution
+        working-directory: python-client
+        run: python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python-client/dist/
+          # Uses PyPI Trusted Publisher (OIDC) if configured in PyPI project settings.
+          # Otherwise set PYPI_API_TOKEN secret and uncomment below:
+          # password: ${{ secrets.PYPI_API_TOKEN }}

@@ -18,7 +18,7 @@ import { JsonlHistoryPersistence } from './history-persistence.js';
 import { SseManager } from './sse-manager.js';
 import { TurnWaitMcpServer } from './turn-mcp-server.js';
 import { WaitStore } from './wait-store.js';
-import { WebhookNotifier } from './webhook.js';
+import { WebhookNotifier, TelegramNotifier } from './webhook.js';
 import { TARGETED_CLIENTS, checkClientStatus, configureBatch, unconfigureBatch } from './auto-configure.js';
 
 // Load persisted settings before starting server
@@ -66,6 +66,11 @@ let webhookNotifier: WebhookNotifier | null = runtimeConfig.webhookUrl
   ? new WebhookNotifier(runtimeConfig.webhookUrl, runtimeConfig.webhookEvents)
   : null;
 
+const telegramNotifier: TelegramNotifier | null =
+  APP_CONFIG.telegramBotToken && APP_CONFIG.telegramChatId
+    ? new TelegramNotifier(APP_CONFIG.telegramBotToken, APP_CONFIG.telegramChatId, APP_CONFIG.telegramEvents)
+    : null;
+
 function updateWebhookNotifier(): void {
   webhookNotifier = runtimeConfig.webhookUrl
     ? new WebhookNotifier(runtimeConfig.webhookUrl, runtimeConfig.webhookEvents)
@@ -76,6 +81,7 @@ const waitStore = new WaitStore((event) => {
   eventLogger.log(event.type, event);
   sseManager.broadcast(event);
   webhookNotifier?.notify(event);
+  telegramNotifier?.notify(event);
 }, historyPersistence);
 const publicDir = path.resolve(__dirname, '../public');
 
@@ -731,6 +737,10 @@ async function handleApiRequest(req: IncomingMessage, res: ServerResponse, pathn
       sendJson(res, 200, { ok: true, resolution: 'canceled', message: null, sessionId });
       return;
     }
+    if (resolution.kind === 'interrupted') {
+      sendJson(res, 200, { ok: true, resolution: 'interrupted', message: null, sessionId });
+      return;
+    }
     sendJson(res, 200, { ok: true, resolution: 'message', message: resolution.text, sessionId });
     return;
   }
@@ -965,6 +975,7 @@ httpServer.listen(APP_CONFIG.httpPort, APP_CONFIG.httpHost, () => {
 async function shutdown(): Promise<void> {
   logger.info('Shutting down...');
   eventLogger.log('server_stopping', {});
+  waitStore.shutdownPersist(); // save pending waits as 'interrupted' before exiting
   await closeAllSessions();
   clearInterval(sessionCleanupTimer);
   sseManager.destroy();

@@ -709,9 +709,17 @@ async function loadSessions() {
       status: s.status,
       lastActivity: s.lastActivity,
       pendingWaits: s.pendingWaits || (s.pendingWait ? [s.pendingWait] : []),
-      pendingWait: s.pendingWait || null, // compat
+      pendingWait: s.pendingWait || null,
       interactionCount: s.interactionCount,
     });
+    // Auto-name session from agentName if no custom name set
+    var firstWait = (s.pendingWaits && s.pendingWaits[0]) || s.pendingWait;
+    if (firstWait && firstWait.agentName && !getSessionName(s.sessionId)) {
+      // Only set if user hasn't already named it
+      if (!sessionNames[s.sessionId]) {
+        setSessionName(s.sessionId, firstWait.agentName);
+      }
+    }
   });
   sessionMap = newMap;
 }
@@ -758,8 +766,9 @@ function buildSessionItemHtml(s) {
   var multiPendingBadge = pendingCount > 1 ? ' <span class="multi-pending-badge">' + pendingCount + '</span>' : '';
   // Resolution badge for completed sessions
   var resBadge = '';
-  if (s.status === 'timeout')   resBadge = ' <span class="session-res-badge res-timeout">' + esc(t('sessions.resBadgeTimeout')) + '</span>';
-  if (s.status === 'canceled')  resBadge = ' <span class="session-res-badge res-canceled">' + esc(t('sessions.resBadgeCanceled')) + '</span>';
+  if (s.status === 'timeout')     resBadge = ' <span class="session-res-badge res-timeout">' + esc(t('sessions.resBadgeTimeout')) + '</span>';
+  if (s.status === 'canceled')    resBadge = ' <span class="session-res-badge res-canceled">' + esc(t('sessions.resBadgeCanceled')) + '</span>';
+  if (s.status === 'interrupted') resBadge = ' <span class="session-res-badge res-interrupted">' + esc(t('sessions.resBadgeInterrupted')) + '</span>';
   return '<div class="session-item' + (isActive ? ' active' : '') + '" data-session-id="' + esc(s.sessionId) + '">' +
     '<div class="session-item-header">' +
       '<span class="session-dot ' + dotClass + '"></span>' +
@@ -785,6 +794,33 @@ function renderSessionList() {
   var active = allSessions.filter(function (s) { return s.status === 'pending'; });
   var historical = allSessions.filter(function (s) { return s.status !== 'pending'; });
 
+  // --- Full-text search: query /api/history for sessions matching context/question ---
+  var _ftSearchPending = false;
+  if (filterVal && filterVal.length >= 2) {
+    _ftSearchPending = true;
+    apiRequest('/api/history?q=' + encodeURIComponent(filterVal) + '&limit=200').then(function (res) {
+      var matchedIds = new Set();
+      (res.history || []).forEach(function (h) { matchedIds.add(h.sessionId); });
+      var extraSessions = [];
+      matchedIds.forEach(function (sid) {
+        if (!sessionMap.has(sid)) return; // only show sessions we know about
+        var s = sessionMap.get(sid);
+        // Only add if not already in active or historical
+        if (!active.some(function(a){ return a.sessionId === sid; }) &&
+            !historical.some(function(h){ return h.sessionId === sid; })) {
+          extraSessions.push(Object.assign({}, s, { _contentMatch: true }));
+        } else {
+          // Mark already-visible ones as matching
+          s._contentMatch = true;
+        }
+      });
+      if (extraSessions.length > 0) {
+        historical = historical.concat(extraSessions);
+        $sessionList.innerHTML = buildSessionListHtml(active, historical, SESSION_LIST_MAX, filterVal);
+      }
+    }).catch(function () {});
+  }
+
   // Cancel All button
   var $cancelAll = document.getElementById('cancelAllBtn');
   if ($cancelAll) {
@@ -798,36 +834,35 @@ function renderSessionList() {
     return;
   }
 
-  var html = '';
+  $sessionList.innerHTML = buildSessionListHtml(active, historical, SESSION_LIST_MAX, filterVal);
+}
 
-  // ── Active section ────────────────────────────────────────
+function buildSessionListHtml(active, historical, maxItems, _filterVal) {
+  var html = '';
   if (active.length > 0) {
     html += '<div class="session-group-hdr">' +
       '<span class="session-group-dot pending"></span>' +
       '<span>' + esc(t('sessions.groupActive')) + '</span>' +
       '<span class="session-group-count">' + active.length + '</span>' +
     '</div>';
-    var activeSlice = active.length > SESSION_LIST_MAX ? active.slice(0, SESSION_LIST_MAX) : active;
+    var activeSlice = active.length > maxItems ? active.slice(0, maxItems) : active;
     html += activeSlice.map(buildSessionItemHtml).join('');
-    if (active.length > SESSION_LIST_MAX) {
-      html += '<div class="session-list-empty" style="font-size:11px">' + esc(t('sessions.more', { shown: SESSION_LIST_MAX, total: active.length })) + '</div>';
+    if (active.length > maxItems) {
+      html += '<div class="session-list-empty" style="font-size:11px">' + esc(t('sessions.more', { shown: maxItems, total: active.length })) + '</div>';
     }
   }
-
-  // ── History section ───────────────────────────────────────
   if (historical.length > 0) {
     html += '<div class="session-group-hdr session-group-hdr-history">' +
       '<span>' + esc(t('sessions.groupHistory')) + '</span>' +
       '<span class="session-group-count">' + historical.length + '</span>' +
     '</div>';
-    var histSlice = historical.length > SESSION_LIST_MAX ? historical.slice(0, SESSION_LIST_MAX) : historical;
+    var histSlice = historical.length > maxItems ? historical.slice(0, maxItems) : historical;
     html += histSlice.map(buildSessionItemHtml).join('');
-    if (historical.length > SESSION_LIST_MAX) {
-      html += '<div class="session-list-empty" style="font-size:11px">' + esc(t('sessions.more', { shown: SESSION_LIST_MAX, total: historical.length })) + '</div>';
+    if (historical.length > maxItems) {
+      html += '<div class="session-list-empty" style="font-size:11px">' + esc(t('sessions.more', { shown: maxItems, total: historical.length })) + '</div>';
     }
   }
-
-  $sessionList.innerHTML = html;
+  return html;
 }
 
 // ===== Option chips helper =====
@@ -870,6 +905,8 @@ function renderChatMessages() {
       html += '<div class="msg msg-system">' + ICONS.clock + ' ' + t('chat.timeout') + '</div>';
     } else if (item.resolution === 'canceled') {
       html += '<div class="msg msg-system">' + ICONS.xCircle + ' ' + t('chat.canceled') + '</div>';
+    } else if (item.resolution === 'interrupted') {
+      html += '<div class="msg msg-system">' + ICONS.loader + ' ' + t('chat.interrupted') + '</div>';
     }
   });
 

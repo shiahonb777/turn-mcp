@@ -135,6 +135,17 @@ export class TurnWaitMcpServer {
           };
         }
 
+        if (resolution.kind === 'interrupted') {
+          return {
+            content: [
+              {
+                type: 'text' as const,
+                text: '[interrupted] The server was restarted while this wait was pending. Please call turn.wait again to resume.',
+              },
+            ],
+          };
+        }
+
         if (resolution.kind === 'busy') {
           return {
             content: [

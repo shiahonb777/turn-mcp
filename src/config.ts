@@ -34,8 +34,11 @@ const configuredOperatorApiKey = (process.env.TURN_MCP_API_KEY || '').trim();
 const configuredViewerApiKey = (process.env.TURN_MCP_VIEWER_API_KEY || '').trim();
 const hasAnyConfiguredKey = configuredOperatorApiKey.length > 0 || configuredViewerApiKey.length > 0;
 
-function parseWebhookFormat(raw: string | undefined): 'json' | 'slack' {
-  return raw?.trim().toLowerCase() === 'slack' ? 'slack' : 'json';
+function parseWebhookFormat(raw: string | undefined): 'json' | 'slack' | 'discord' {
+  const v = raw?.trim().toLowerCase();
+  if (v === 'slack') return 'slack';
+  if (v === 'discord') return 'discord';
+  return 'json';
 }
 
 export const APP_CONFIG = {
@@ -58,8 +61,14 @@ export const APP_CONFIG = {
   webhookEvents: (process.env.TURN_MCP_WEBHOOK_EVENTS || '').trim(),
   /** HMAC-SHA256 secret for signing outbound webhook payloads. */
   webhookSecret: (process.env.TURN_MCP_WEBHOOK_SECRET || '').trim(),
-  /** Payload format for outbound webhooks: 'json' (default) or 'slack'. */
+  /** Payload format for outbound webhooks: 'json' (default), 'slack', or 'discord'. */
   webhookFormat: parseWebhookFormat(process.env.TURN_MCP_WEBHOOK_FORMAT),
+  /** Telegram Bot token for wait-created notifications. */
+  telegramBotToken: (process.env.TURN_MCP_TELEGRAM_BOT_TOKEN || '').trim(),
+  /** Telegram chat/channel ID to send notifications to. */
+  telegramChatId: (process.env.TURN_MCP_TELEGRAM_CHAT_ID || '').trim(),
+  /** Comma-separated event types to send to Telegram (default: wait_created). */
+  telegramEvents: (process.env.TURN_MCP_TELEGRAM_EVENTS || 'wait_created').trim(),
   /** Max REST API requests per IP per window (0 = disabled). */
   rateLimitMax: parseIntEnv('TURN_MCP_RATE_LIMIT_MAX', 120, 0, 100_000),
   /** Rate-limit sliding window in seconds. */

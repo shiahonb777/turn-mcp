@@ -134,6 +134,8 @@
     'sessions.groupHistory': 'History',
     'sessions.resBadgeTimeout': 'timed out',
     'sessions.resBadgeCanceled': 'canceled',
+    'sessions.resBadgeInterrupted': 'interrupted',
+    'chat.interrupted': 'Server restarted — this wait was interrupted',
     'history.readOnlyTitle': 'Historical session — view only',
     'history.readOnlyDesc': 'This session has ended.',
 
@@ -298,6 +300,8 @@
     'sessions.groupHistory': '历史会话',
     'sessions.resBadgeTimeout': '超时',
     'sessions.resBadgeCanceled': '已取消',
+    'sessions.resBadgeInterrupted': '已中断',
+    'chat.interrupted': '服务器重启 — 此等待已被中断',
     'history.readOnlyTitle': '历史会话 — 仅预览',
     'history.readOnlyDesc': '此会话已结束。',
 
