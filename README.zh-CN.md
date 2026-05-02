@@ -81,7 +81,7 @@ MCP 端点：`http://127.0.0.1:3737/mcp`
 
 1. 启动服务。
 2. 把 MCP 客户端连到 `http://127.0.0.1:3737/mcp`，或者用 stdio 方式启动。
-3. 把 [`SKILL.md`](./SKILL.md) 或 [`SKILL.zh-CN.md`](./SKILL.zh-CN.md) 交给 Agent。
+3. 把 [`skills/turn-mcp-web/SKILL.md`](./skills/turn-mcp-web/SKILL.md) 交给 Agent；如果需要中文 handoff，可同时参考 [`skills/turn-mcp-web/references/skill.zh-CN.md`](./skills/turn-mcp-web/references/skill.zh-CN.md)。
 4. Agent 在需要人工输入时调用 `turn.wait`。
 5. 你在浏览器控制台回复，同一轮运行继续执行。
 
@@ -153,8 +153,8 @@ except TurnMcpCanceled:
 
 给 Agent 提供下面任一文件：
 
-- 英文：[`SKILL.md`](./SKILL.md)
-- 中文：[`SKILL.zh-CN.md`](./SKILL.zh-CN.md)
+- 技能入口：[`skills/turn-mcp-web/SKILL.md`](./skills/turn-mcp-web/SKILL.md)
+- 中文参考：[`skills/turn-mcp-web/references/skill.zh-CN.md`](./skills/turn-mcp-web/references/skill.zh-CN.md)
 
 这些文档会要求 Agent 通过 `turn.wait` 与人沟通，而不是直接结束回复。
 

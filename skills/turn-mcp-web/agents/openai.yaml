@@ -1,0 +1,4 @@
+interface:
+  display_name: "Turn MCP Web"
+  short_description: "Keep one agent run alive across human replies"
+  default_prompt: "Use $turn-mcp-web to route approvals, checkpoints, and user replies through turn.wait in the Turn MCP console."

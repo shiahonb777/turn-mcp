@@ -81,7 +81,7 @@ MCP endpoint: `http://127.0.0.1:3737/mcp`
 
 1. Start the server.
 2. Connect your MCP client to `http://127.0.0.1:3737/mcp` or launch the stdio entrypoint.
-3. Give the agent [`SKILL.md`](./SKILL.md) so it routes user-facing checkpoints through `turn.wait`.
+3. Give the agent [`skills/turn-mcp-web/SKILL.md`](./skills/turn-mcp-web/SKILL.md) so it routes user-facing checkpoints through `turn.wait`.
 4. When the agent pauses, answer in the browser console.
 5. The same agent run resumes with your reply.
 
@@ -153,8 +153,8 @@ More examples: [`python-client/README.md`](./python-client/README.md)
 
 Give the agent one of these files:
 
-- English: [`SKILL.md`](./SKILL.md)
-- 中文: [`SKILL.zh-CN.md`](./SKILL.zh-CN.md)
+- Skill entry: [`skills/turn-mcp-web/SKILL.md`](./skills/turn-mcp-web/SKILL.md)
+- 中文参考: [`skills/turn-mcp-web/references/skill.zh-CN.md`](./skills/turn-mcp-web/references/skill.zh-CN.md)
 
 Those files tell the agent to use `turn.wait` as the communication boundary instead of replying directly.
 
