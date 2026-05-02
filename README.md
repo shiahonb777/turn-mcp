@@ -21,8 +21,6 @@ Turn a single agent request into a durable human-in-the-loop conversation.
   <img src="./assets/screenshots/language-picker.png" alt="First launch language picker" width="32%">
 </p>
 
-Video file in this repository: [`assets/demo/turn-mcp-demo.mov`](./assets/demo/turn-mcp-demo.mov)
-
 ## Why It Exists
 
 Most agent integrations treat a human checkpoint as a dead end:

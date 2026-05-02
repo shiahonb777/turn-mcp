@@ -21,8 +21,6 @@
   <img src="./assets/screenshots/language-picker.png" alt="首次启动语言选择" width="32%">
 </p>
 
-演示视频文件：[`assets/demo/turn-mcp-demo.mov`](./assets/demo/turn-mcp-demo.mov)
-
 ## 这个项目解决什么问题
 
 大多数 Agent 系统里，“人工确认”通常意味着一次运行的终点：
