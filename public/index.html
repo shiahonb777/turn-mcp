@@ -9,13 +9,13 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body class="not-ready">
-  <!-- Loading overlay — seamless transition -->
+  
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-ring"></div>
   </div>
 
   <div class="app">
-    <!-- Sidebar -->
+    
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h1 class="logo">Turn MCP</h1>
@@ -41,9 +41,9 @@
       <div class="session-list" id="sessionList"></div>
     </aside>
 
-    <!-- Main panel -->
+    
     <main class="main-panel" id="mainPanel">
-      <!-- Welcome view -->
+      
       <div id="welcomeView" class="welcome-view">
         <div class="welcome-inner">
           <div class="welcome-icon" aria-hidden="true">
@@ -65,7 +65,7 @@
         </div>
       </div>
 
-      <!-- Chat view -->
+      
       <div id="chatView" class="chat-view hidden">
         <div class="chat-header">
           <button id="backBtn" class="icon-btn back-btn" aria-label="Back" type="button">
@@ -84,7 +84,7 @@
           </button>
         </div>
         <div class="chat-messages" id="chatMessages"></div>
-        <!-- Read-only banner shown for historical (completed) sessions -->
+        
         <div id="historyReadOnlyBanner" class="history-readonly-banner hidden">
           <div class="hrb-icon" aria-hidden="true">
             <svg class="ui-icon" viewBox="0 0 24 24" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -112,7 +112,7 @@
         </div>
       </div>
 
-      <!-- Settings view -->
+      
       <div id="settingsView" class="settings-view hidden">
         <div class="settings-header">
           <h2 data-i18n="settings.title"></h2>
@@ -160,17 +160,17 @@
               <button id="clearWebhookBtn" class="btn secondary" data-i18n="btn.clear"></button>
             </div>
           </section>
-          <!-- ===== One-click client configuration ===== -->
+          
           <section class="settings-section" id="autoConfigSection">
             <h3 data-i18n="settings.autoConfig"></h3>
-            <!-- Mode tabs -->
+            
             <div class="ac-tabs">
               <button class="ac-tab active" data-mode="targeted" data-i18n="ac.modeTargeted"></button>
               <button class="ac-tab" data-mode="generic" data-i18n="ac.modeGeneric"></button>
               <button class="ac-tab" data-mode="system" data-i18n="ac.modeSystem"></button>
             </div>
 
-            <!-- Targeted mode -->
+            
             <div id="acTargeted" class="ac-panel">
               <p class="muted small" data-i18n="ac.targetedDesc"></p>
               <div id="acClientList" class="ac-client-list"></div>
@@ -181,7 +181,7 @@
               </div>
             </div>
 
-            <!-- Generic / third-party mode -->
+            
             <div id="acGeneric" class="ac-panel hidden">
               <p class="muted small" data-i18n="ac.genericDesc"></p>
               <div id="acGenericSnippet" class="ac-snippet-wrap"></div>
@@ -192,7 +192,7 @@
               <p id="acGenericResult" class="ac-result-msg hidden"></p>
             </div>
 
-            <!-- System environment mode -->
+            
             <div id="acSystem" class="ac-panel hidden">
               <p class="muted small" data-i18n="ac.systemDesc"></p>
               <ul class="ac-system-targets">
@@ -220,10 +220,10 @@
     </main>
   </div>
 
-  <!-- Toast notification container -->
+  
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <!-- Confirm modal -->
+  
   <div id="confirmModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
     <div class="modal-dialog">
       <p id="confirmMsg" class="modal-msg"></p>
@@ -234,7 +234,7 @@
     </div>
   </div>
 
-  <!-- Language picker — shown on first launch only -->
+  
   <div id="langPickerModal" class="lang-picker-modal hidden" role="dialog" aria-modal="true" aria-label="Select language">
     <div class="lang-picker-card">
       <div class="lang-picker-logo">Turn MCP</div>

@@ -1,11 +1,7 @@
-/* ============================================================
-   Turn MCP Web Console — "Liquid Obsidian"
-   Pure B&W · Skeuomorphic Depth · Water-Droplet Physics
-   ============================================================ */
 
-/* ===== Design Tokens ===== */
+
 :root {
-  /* Void — layered black depth system */
+  
   --bg-void: #000000;
   --bg-base: #060606;
   --bg-raised: #0d0d0d;
@@ -14,13 +10,13 @@
   --bg-overlay: #242424;
   --bg-sidebar: #040404;
 
-  /* Glass materials — frosted obsidian */
+  
   --glass-thin: rgba(10, 10, 10, 0.72);
   --glass-thick: rgba(14, 14, 14, 0.88);
   --glass-blur: 48px;
   --glass-saturate: 120%;
 
-  /* Borders — seams of light */
+  
   --border-void: rgba(255, 255, 255, 0.02);
   --border-hairline: rgba(255, 255, 255, 0.04);
   --border-subtle: rgba(255, 255, 255, 0.06);
@@ -29,32 +25,32 @@
   --border-strong: rgba(255, 255, 255, 0.20);
   --border-focus: rgba(255, 255, 255, 0.40);
 
-  /* Highlights — edge-lit surfaces */
+  
   --hl-soft: rgba(255, 255, 255, 0.03);
   --hl: rgba(255, 255, 255, 0.06);
   --hl-bright: rgba(255, 255, 255, 0.10);
 
-  /* Text — ink hierarchy */
+  
   --text-primary: rgba(255, 255, 255, 0.88);
   --text-secondary: rgba(255, 255, 255, 0.48);
   --text-tertiary: rgba(255, 255, 255, 0.26);
   --text-quaternary: rgba(255, 255, 255, 0.13);
   --text-ghost: rgba(255, 255, 255, 0.07);
 
-  /* Accent — white is the only color */
+  
   --accent: rgba(255, 255, 255, 0.90);
   --accent-dim: rgba(255, 255, 255, 0.55);
   --accent-subtle: rgba(255, 255, 255, 0.06);
   --accent-glow: rgba(255, 255, 255, 0.12);
 
-  /* Skeuomorphic materials */
+  
   --mat-chrome: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 100%);
   --mat-button: linear-gradient(180deg, #222 0%, #161616 100%);
   --mat-button-hover: linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%);
   --mat-button-press: linear-gradient(180deg, #121212 0%, #181818 100%);
   --mat-inset: linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
 
-  /* Depth shadows — physics of darkness */
+  
   --depth-press: inset 0 2px 6px rgba(0,0,0,0.55), inset 0 1px 2px rgba(0,0,0,0.35);
   --depth-inset: inset 0 1px 3px rgba(0,0,0,0.5), inset 0 0.5px 1px rgba(0,0,0,0.25);
   --depth-hl: inset 0 0.5px 0 var(--hl);
@@ -63,33 +59,33 @@
   --depth-floating: 0 12px 48px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5), inset 0 0.5px 0 var(--hl);
   --depth-glow: 0 0 24px rgba(255,255,255,0.03);
 
-  /* Chat bubbles — monochrome */
+  
   --bubble-agent: rgba(255, 255, 255, 0.03);
   --bubble-agent-border: rgba(255, 255, 255, 0.06);
   --bubble-user: rgba(255, 255, 255, 0.06);
   --bubble-user-border: rgba(255, 255, 255, 0.10);
 
-  /* Spring physics — water-droplet dynamics */
+  
   --spring-bouncy: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --spring-snappy: cubic-bezier(0.34, 1.56, 0.64, 1);
   --spring-gentle: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
 
-  /* Timing — natural rhythm */
+  
   --dur-instant: 80ms;
   --dur-fast: 150ms;
   --dur-base: 260ms;
   --dur-slow: 400ms;
   --dur-slower: 560ms;
 
-  /* Typography */
+  
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
     'Helvetica Neue', system-ui, sans-serif;
   --font-mono: 'SF Mono', ui-monospace, SFMono-Regular, 'Cascadia Code',
     Menlo, Monaco, Consolas, monospace;
 
-  /* Layout */
+  
   --sidebar-w: 280px;
   --header-h: 54px;
   --radius-xs: 5px;
@@ -100,8 +96,6 @@
   --radius-full: 9999px;
 }
 
-
-/* ===== Reset ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -129,8 +123,6 @@ input, textarea { font-family: inherit; }
 .small { font-size: 12px; }
 .mono { font-family: var(--font-mono); font-size: 12px; }
 
-
-/* ===== Loading Overlay ===== */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -161,7 +153,6 @@ input, textarea { font-family: inherit; }
   to { transform: rotate(360deg); }
 }
 
-/* App hidden until ready */
 body.not-ready .app {
   opacity: 0;
   pointer-events: none;
@@ -175,9 +166,6 @@ body:not(.not-ready) .app {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
-
-/* ===== Animation Library — Water-Droplet Physics ===== */
 
 @keyframes waterDrop {
   0% { opacity: 0; transform: translateY(-10px) scale(0.85); }
@@ -244,8 +232,6 @@ body:not(.not-ready) .app {
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-
-/* ===== SVG Icon System ===== */
 .ui-icon {
   width: 18px;
   height: 18px;
@@ -258,8 +244,6 @@ body:not(.not-ready) .app {
   transition: transform var(--dur-fast) var(--spring-snappy);
 }
 
-
-/* ===== App Layout ===== */
 .app {
   display: flex;
   height: 100vh;
@@ -268,8 +252,6 @@ body:not(.not-ready) .app {
   position: relative;
 }
 
-
-/* ===== Sidebar ===== */
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
@@ -282,7 +264,6 @@ body:not(.not-ready) .app {
   z-index: 5;
 }
 
-/* Mysterious ambient light */
 .sidebar::before {
   content: '';
   position: absolute;
@@ -296,7 +277,6 @@ body:not(.not-ready) .app {
   z-index: 0;
 }
 
-/* Edge highlight */
 .sidebar::after {
   content: '';
   position: absolute;
@@ -333,8 +313,6 @@ body:not(.not-ready) .app {
   gap: 2px;
 }
 
-
-/* ===== Icon Buttons — Skeuomorphic pressable ===== */
 .icon-btn {
   background: var(--mat-chrome);
   border: 1px solid var(--border-subtle);
@@ -387,8 +365,6 @@ body:not(.not-ready) .app {
 
 .icon-btn.has-label:hover span { opacity: 1; }
 
-
-/* ===== Connection Status ===== */
 .conn-status {
   display: inline-flex;
   align-items: center;
@@ -447,8 +423,6 @@ body:not(.not-ready) .app {
   background: var(--text-quaternary);
 }
 
-
-/* ===== Sidebar Filter Bar ===== */
 .sidebar-filter-bar {
   padding: 8px 10px;
   border-bottom: 1px solid var(--border-void);
@@ -479,7 +453,6 @@ body:not(.not-ready) .app {
 
 .cancel-all-btn { flex-shrink: 0; font-size: 11px; }
 
-/* ===== Session List ===== */
 .session-list {
   flex: 1;
   overflow-y: auto;
@@ -606,8 +579,6 @@ body:not(.not-ready) .app {
   animation: fadeIn var(--dur-slow) var(--ease-out-expo);
 }
 
-
-/* ===== Main Panel ===== */
 .main-panel {
   flex: 1;
   display: flex;
@@ -617,7 +588,6 @@ body:not(.not-ready) .app {
   background: var(--bg-base);
 }
 
-/* Noise texture — organic grain */
 .main-panel::after {
   content: '';
   position: absolute;
@@ -628,7 +598,6 @@ body:not(.not-ready) .app {
   opacity: 0.5;
 }
 
-/* Vignette — darkened edges */
 .main-panel::before {
   content: '';
   position: absolute;
@@ -638,8 +607,6 @@ body:not(.not-ready) .app {
   z-index: 0;
 }
 
-
-/* ===== Welcome View ===== */
 .welcome-view {
   flex: 1;
   display: flex;
@@ -651,7 +618,6 @@ body:not(.not-ready) .app {
   animation: waterDropUp var(--dur-slower) var(--ease-out-expo);
 }
 
-/* Ambient light pool */
 .welcome-view::before {
   content: '';
   position: fixed;
@@ -708,8 +674,6 @@ body:not(.not-ready) .app {
   margin: 0 auto;
 }
 
-
-/* ===== Endpoint Box ===== */
 .endpoint-box {
   margin: 20px 0;
   padding: 12px 18px;
@@ -737,8 +701,6 @@ body:not(.not-ready) .app {
   user-select: all;
 }
 
-
-/* ===== Setup Guide ===== */
 .setup-guide {
   margin-top: 24px;
   text-align: left;
@@ -835,7 +797,6 @@ body:not(.not-ready) .app {
 .setup-guide-content ul { padding-left: 18px; margin: 8px 0; }
 .setup-guide-content li { margin: 5px 0; color: var(--text-secondary); }
 
-/* ===== Code Wrap + Copy Button ===== */
 .code-wrap {
   position: relative;
 }
@@ -872,7 +833,6 @@ body:not(.not-ready) .app {
   transition: all var(--dur-fast) var(--spring-snappy);
 }
 
-/* ===== Markdown Content ===== */
 .md-content p { margin: 3px 0; line-height: 1.65; }
 .md-content .md-gap { height: 6px; }
 .md-content .md-h { color: var(--text-primary); font-weight: 600; margin: 10px 0 4px; }
@@ -895,7 +855,6 @@ body:not(.not-ready) .app {
 .md-content pre { margin: 6px 0 10px; }
 .md-content .code-wrap pre { margin: 0; }
 
-/* IDE config grid — fills available width, min 240px per column */
 .guide-cols {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -910,8 +869,6 @@ body:not(.not-ready) .app {
 
 .guide-block h5 { margin-top: 0; }
 
-
-/* ===== Chat View ===== */
 .chat-view {
   flex: 1;
   display: flex;
@@ -973,8 +930,6 @@ body:not(.not-ready) .app {
   letter-spacing: 0.01em;
 }
 
-
-/* ===== Chat Messages ===== */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -1074,7 +1029,6 @@ body:not(.not-ready) .app {
 
 .msg-context { margin-bottom: 5px; color: var(--text-primary); }
 
-/* Collapsible long context */
 .msg-context.collapsible {
   max-height: 260px;
   overflow: hidden;
@@ -1129,8 +1083,6 @@ body:not(.not-ready) .app {
   opacity: 0.5;
 }
 
-
-/* ===== Chat Input Area ===== */
 .chat-input-area {
   border-top: 1px solid var(--border-void);
   padding: 14px 18px;
@@ -1286,8 +1238,6 @@ body:not(.not-ready) .app {
   animation: breathe 1.5s ease-in-out infinite;
 }
 
-
-/* ===== Buttons — Skeuomorphic raised ===== */
 .btn {
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
@@ -1424,8 +1374,6 @@ body:not(.not-ready) .app {
   transform: none !important;
 }
 
-
-/* ===== Settings View ===== */
 .settings-view {
   position: absolute;
   inset: 0;
@@ -1532,8 +1480,6 @@ body:not(.not-ready) .app {
 
 .template-list-item span { flex: 1; color: var(--text-secondary); }
 
-
-/* ===== Toggle Switch — Skeuomorphic 3D ===== */
 .toggle-label {
   display: inline-flex;
   align-items: center;
@@ -1567,7 +1513,6 @@ body:not(.not-ready) .app {
     box-shadow var(--dur-base) var(--ease-smooth);
 }
 
-/* Metallic knob */
 .toggle-switch::after {
   content: '';
   position: absolute;
@@ -1605,8 +1550,6 @@ body:not(.not-ready) .app {
   outline-offset: 2px;
 }
 
-
-/* ===== Scrollbar ===== */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -1622,15 +1565,11 @@ body:not(.not-ready) .app {
   scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
 }
 
-
-/* ===== Selection ===== */
 ::selection {
   background: rgba(255, 255, 255, 0.18);
   color: inherit;
 }
 
-
-/* ===== Focus Visible ===== */
 :focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.25);
   outline-offset: 2px;
@@ -1644,8 +1583,6 @@ textarea:focus-visible {
   outline-offset: 1px;
 }
 
-
-/* ===== Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -1655,8 +1592,6 @@ textarea:focus-visible {
   }
 }
 
-
-/* ===== Toast Notifications ===== */
 .toast-container {
   position: fixed;
   top: 14px;
@@ -1769,8 +1704,6 @@ textarea:focus-visible {
   color: rgba(255, 110, 110, 0.75);
 }
 
-
-/* ===== Confirm Modal ===== */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1809,8 +1742,6 @@ textarea:focus-visible {
   justify-content: flex-end;
 }
 
-
-/* ===== Multi-pending badge ===== */
 .multi-pending-badge {
   display: inline-flex;
   align-items: center;
@@ -1839,8 +1770,6 @@ textarea:focus-visible {
   text-align: center;
 }
 
-
-/* ===== Session name in header ===== */
 .chat-session-name {
   font-size: 14px;
   font-weight: 600;
@@ -1859,8 +1788,6 @@ textarea:focus-visible {
   margin-top: 2px;
 }
 
-
-/* ===== Auto-Configure ===== */
 .ac-tabs {
   display: flex;
   gap: 4px;
@@ -1951,16 +1878,12 @@ textarea:focus-visible {
 .ac-results-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
 .ac-result-item { font-size: 12px; padding: 5px 10px; border-radius: var(--radius-sm); }
 
-
-/* ===== Syntax Highlight Tokens ===== */
 .tok-kw  { color: #C792EA; }
 .tok-str { color: #C3E88D; }
 .tok-num { color: #F78C6C; }
 .tok-cmt { color: #546E7A; font-style: italic; }
 .tok-key { color: #82AAFF; }
 
-
-/* ===== Option Buttons ===== */
 .options-label {
   font-size: 10.5px;
   font-weight: 700;
@@ -2008,8 +1931,6 @@ textarea:focus-visible {
   animation: spin 1s linear infinite;
 }
 
-
-/* ===== Option chips — in agent bubble (history + pending) ===== */
 .msg-option-chips {
   margin-top: 10px;
   padding-top: 10px;
@@ -2052,7 +1973,6 @@ textarea:focus-visible {
   opacity: 0.6;
 }
 
-/* Highlighted chip = the one the user picked */
 .option-chip-selected {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.08);
@@ -2060,7 +1980,6 @@ textarea:focus-visible {
   font-weight: 600;
 }
 
-/* User reply bubble when it was an option pick */
 .msg-user-option {
   border-color: var(--border-medium);
 }
@@ -2073,8 +1992,6 @@ textarea:focus-visible {
   margin-right: 2px;
 }
 
-
-/* ===== Language Picker (first-launch) ===== */
 .lang-picker-modal {
   position: fixed;
   inset: 0;
@@ -2178,8 +2095,6 @@ textarea:focus-visible {
   color: var(--text-primary);
 }
 
-
-/* ===== Session group headers ===== */
 .session-group-hdr {
   display: flex;
   align-items: center;
@@ -2222,7 +2137,6 @@ textarea:focus-visible {
   letter-spacing: 0;
 }
 
-/* Resolution badges on historical sessions */
 .session-res-badge {
   font-size: 8.5px;
   font-weight: 700;
@@ -2236,8 +2150,6 @@ textarea:focus-visible {
 .res-canceled    { background: rgba(255,255,255,0.04); color: var(--text-quaternary); border: 1px solid var(--border-void); }
 .res-interrupted { background: rgba(255,120,60,0.08);  color: rgba(255,140,80,0.60);  border: 1px solid rgba(255,120,60,0.14); }
 
-
-/* ===== History read-only banner ===== */
 .history-readonly-banner {
   display: flex;
   align-items: center;
@@ -2284,7 +2196,6 @@ textarea:focus-visible {
   text-overflow: ellipsis;
 }
 
-/* ===== Agent Name Badge ===== */
 .agent-name-badge {
   display: inline-block;
   font-size: 9.5px;
@@ -2304,8 +2215,6 @@ textarea:focus-visible {
   padding: 1px 5px;
 }
 
-
-/* ===== Markdown Tables ===== */
 .md-table {
   border-collapse: collapse;
   width: 100%;
@@ -2338,8 +2247,6 @@ textarea:focus-visible {
   background: rgba(255, 255, 255, 0.015);
 }
 
-
-/* ===== Mobile ===== */
 @media (max-width: 640px) {
   :root { --sidebar-w: 280px; }
 

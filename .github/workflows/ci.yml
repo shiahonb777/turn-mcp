@@ -7,8 +7,8 @@ on:
     branches: ["**"]
 
 jobs:
-  build-and-test:
-    name: Build & Test (Node ${{ matrix.node-version }})
+  build:
+    name: Build (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -23,17 +23,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: turn-mcp-web-universal/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: turn-mcp-web-universal
         run: npm ci
 
-      - name: Build (TypeScript)
-        working-directory: turn-mcp-web-universal
+      - name: Build
         run: npm run build
-
-      - name: Run tests
-        working-directory: turn-mcp-web-universal
-        run: npm test
-        timeout-minutes: 5

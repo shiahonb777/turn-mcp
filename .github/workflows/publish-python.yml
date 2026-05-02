@@ -3,14 +3,14 @@ name: Publish Python Client to PyPI
 on:
   push:
     tags:
-      - "python-v*"   # trigger with: git tag python-v0.1.0 && git push --tags
+      - "python-v*"
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write  # for trusted publishing (no API token needed if configured)
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: python-client/dist/
-          # Uses PyPI Trusted Publisher (OIDC) if configured in PyPI project settings.
-          # Otherwise set PYPI_API_TOKEN secret and uncomment below:
-          # password: ${{ secrets.PYPI_API_TOKEN }}

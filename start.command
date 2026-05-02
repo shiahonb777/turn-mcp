@@ -1,13 +1,8 @@
 #!/bin/bash
-# ============================================================
-#  Turn MCP Web — Quick Start  (macOS / Linux)
-#  Double-click, or run:  bash start.sh
-# ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# ── Colours ──────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
@@ -15,7 +10,6 @@ echo ""
 echo -e "  ${BOLD}Turn MCP Web${NC}  — Starting up…"
 echo ""
 
-# ── 1. Check Node.js ─────────────────────────────────────────
 if ! command -v node &>/dev/null; then
   echo -e "  ${RED}✗ Node.js not found.${NC}"
   echo ""
@@ -27,7 +21,6 @@ if ! command -v node &>/dev/null; then
   exit 1
 fi
 
-# Check minimum version (18)
 MAJOR=$(node -e "console.log(process.versions.node.split('.')[0])")
 if [ "$MAJOR" -lt 18 ] 2>/dev/null; then
   echo -e "  ${YELLOW}⚠  Node.js $(node --version) is too old. Required: >= 18.17${NC}"
@@ -38,7 +31,6 @@ if [ "$MAJOR" -lt 18 ] 2>/dev/null; then
 fi
 echo -e "  ${GREEN}✓${NC}  Node.js $(node --version)"
 
-# ── 2. Install dependencies if absent ────────────────────────
 if [ ! -d "node_modules" ] || [ ! -d "node_modules/@modelcontextprotocol" ]; then
   echo ""
   echo -e "  ${CYAN}→${NC}  Installing dependencies (first run only)…"
@@ -50,7 +42,6 @@ if [ ! -d "node_modules" ] || [ ! -d "node_modules/@modelcontextprotocol" ]; the
   echo -e "  ${GREEN}✓${NC}  Dependencies installed"
 fi
 
-# ── 3. Build TypeScript if dist/ is missing ───────────────────
 if [ ! -f "dist/server.js" ]; then
   echo ""
   echo -e "  ${CYAN}→${NC}  Building project…"
@@ -62,7 +53,6 @@ if [ ! -f "dist/server.js" ]; then
   echo -e "  ${GREEN}✓${NC}  Build complete"
 fi
 
-# ── 4. Print info banner ──────────────────────────────────────
 echo ""
 echo -e "  ${BOLD}┌──────────────────────────────────────────────┐${NC}"
 echo -e "  ${BOLD}│${NC}  🌐  Web Console   ${CYAN}http://127.0.0.1:3737/${NC}      ${BOLD}│${NC}"
@@ -72,14 +62,11 @@ echo ""
 echo -e "  Press  ${BOLD}Ctrl+C${NC}  to stop the server."
 echo ""
 
-# ── 5. Kill any existing process on port 3737 ──────────────────────────
-# lsof may return multiple PIDs (listeners + connections); iterate each one
 while IFS= read -r OLD_PID; do
   [ -z "$OLD_PID" ] && continue
   echo -e "  ${YELLOW}⚠${NC}  Port 3737 in use (PID $OLD_PID) — stopping..."
   kill -9 "$OLD_PID" 2>/dev/null
 done < <(lsof -ti tcp:3737 2>/dev/null)
-# Wait until the port is actually free (up to 3 s)
 for _i in 1 2 3 4 5 6; do
   lsof -ti tcp:3737 &>/dev/null || break
   sleep 0.5
@@ -90,7 +77,6 @@ if lsof -ti tcp:3737 &>/dev/null; then
   exit 1
 fi
 
-# ── 6. Open browser after server starts ─────────────────────────────
 (
   sleep 1.8
   if command -v open &>/dev/null; then
@@ -100,20 +86,14 @@ fi
   fi
 ) &
 
-# ── 7. Run server ────────────────────────────────────────────────────────
-# Run node in background, forward all terminal signals to it.
-# This keeps the shell alive so we can show error messages if node crashes.
 node dist/server.js &
 NODE_PID=$!
 
-# Forward Ctrl+C, kill, and terminal-window-close to node
 trap 'kill -SIGTERM $NODE_PID 2>/dev/null' SIGINT SIGTERM SIGHUP
 
-# Wait for node to exit and capture its exit code
 wait $NODE_PID
 EXIT_CODE=$?
 
-# If node exited with an error, keep the terminal open so the user can read it
 if [ $EXIT_CODE -ne 0 ]; then
   echo ""
   echo -e "  ${RED}✗ Server exited with code $EXIT_CODE${NC}"

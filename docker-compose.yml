@@ -1,8 +1,8 @@
 services:
   turn-mcp-web:
     build: .
-    image: turn-mcp-web-universal:latest
-    container_name: turn-mcp-web-universal
+    image: turn-mcp-web:latest
+    container_name: turn-mcp-web
     restart: unless-stopped
     ports:
       - "3737:3737"
@@ -15,7 +15,5 @@ services:
       TURN_MCP_VIEWER_API_KEY: "replace_me_viewer_key"
       TURN_MCP_EVENT_LOG_FILE: "/app/logs/events.jsonl"
       TURN_MCP_HISTORY_FILE: "/app/logs/history.jsonl"
-      # TURN_MCP_WEBHOOK_URL: "https://example.com/webhook"
-      # TURN_MCP_WEBHOOK_EVENTS: "wait_created"
     volumes:
       - ./logs:/app/logs

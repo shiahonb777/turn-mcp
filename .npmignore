@@ -1,4 +1,3 @@
-# Source & dev files
 src/
 tests/
 tsconfig.json
@@ -6,32 +5,25 @@ tsconfig.json
 .DS_Store
 logs/
 
-# Docker
 docker-compose.yml
 Dockerfile
 .dockerignore
 
-# Docs (en readme kept; zh-CN excluded to save space)
 README.zh-CN.md
 CONTRIBUTING.md
 
-# GitHub
 .github/
 
-# Python client & examples (separate package)
 python-client/
 examples/
 
-# Runtime artifacts
 .tmp-regression/
 .turn-mcp-settings.json
 *.jsonl
 
-# Quick-start shell scripts (only needed when cloning the repo)
 start.sh
 start.bat
 start.command
 
-# Editor
 .vscode/
 .idea/
